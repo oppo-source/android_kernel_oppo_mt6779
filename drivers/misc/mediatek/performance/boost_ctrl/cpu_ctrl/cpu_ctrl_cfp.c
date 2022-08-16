@@ -10,11 +10,9 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#include <linux/cpumask.h>
 
 #include <mt-plat/cpu_ctrl.h>
 #include <mt-plat/mtk_ppm_api.h>
-#include "cpu_ctrl.h"
 #include "boost_ctrl.h"
 #include "mtk_perfmgr_internal.h"
 #include "load_track.h"
@@ -104,10 +102,13 @@ static void set_cfp_ppm(struct ppm_limit_data *desired_freq, int headroom_opp)
 #ifdef CONFIG_TRACING
 	perfmgr_trace_count(cc_is_ceiled, "cfp_ceiled");
 #endif
+#if !defined (CONFIG_MACH_MT6833)
+ //TODO Lokesh
 	mt_ppm_userlimit_cpu_freq(perfmgr_clusters, cfp_freq);
+#endif
 }
 
-static void cfp_lt_callback(int mask_loading, int loading)
+static void cfp_lt_callback(int loading)
 {
 	cfp_lock(__func__);
 
@@ -163,7 +164,7 @@ static void start_cfp(void)
 	pr_debug("%s\n", __func__);
 
 	cfp_unlock(__func__);
-	reg_ret = reg_loading_tracking(cfp_lt_callback, poll_ms, cpu_possible_mask);
+	reg_ret = reg_loading_tracking(cfp_lt_callback, poll_ms);
 	if (reg_ret)
 		pr_debug("%s reg_ret=%d\n", __func__, reg_ret);
 	cfp_lock(__func__);
@@ -452,7 +453,6 @@ int cpu_ctrl_cfp_init(struct proc_dir_entry *parent)
 		for (opp_idx = 0; opp_idx < MAX_NR_FREQ; opp_idx++)
 			freq_tbl[clu_idx][opp_idx] =
 			mt_cpufreq_get_freq_by_idx(clu_idx, opp_idx);
-
 	}
 
 	__cfp_enable       = 1;

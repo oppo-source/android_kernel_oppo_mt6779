@@ -423,15 +423,11 @@ static int ion_sec_heap_allocate(struct ion_heap *heap,
 	refcount = 0;
 #endif
 
-	if (ret == -ENOMEM) {
+	if (ret == -ENOMEM || sec_handle <= 0) {
 		IONMSG("%s security out of memory, heap:%d\n",
-			__func__, heap->id);
-		/* avoid recursive deadlock */
-		/* heap->debug_show(heap, NULL, NULL); */
-	}
-	if (sec_handle <= 0) {
+		       __func__, heap->id);
 		IONMSG("%s alloc security memory failed, total size %zu\n",
-			__func__, sec_heap_total_memory);
+		       __func__, sec_heap_total_memory);
 		kfree(pbufferinfo);
 		caller_pid = 0;
 		caller_tid = 0;
@@ -642,7 +638,11 @@ void ion_sec_heap_dump_info(void)
 		 "client", "dbg_name", "pid", "size", "address");
 	ION_DUMP(NULL, "%s\n", seq_line);
 
+#ifdef OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK
+	if (!down_read_trylock(&dev->client_lock)) {
+#else /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 	if (!down_read_trylock(&dev->lock)) {
+#endif /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 		ION_DUMP(NULL,
 			 "detail trylock fail, alloc pid(%d-%d)\n",
 			 caller_pid, caller_tid);
@@ -685,7 +685,11 @@ void ion_sec_heap_dump_info(void)
 	}
 
 	if (need_dev_lock)
+#ifdef OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK
+		up_read(&dev->client_lock);
+#else /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 		up_read(&dev->lock);
+#endif /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 
 	ION_DUMP(NULL, "%s\n", seq_line);
 	ION_DUMP(NULL,
@@ -795,7 +799,7 @@ static int ion_sec_heap_debug_show(struct ion_heap *heap,
 {
 	struct ion_device *dev = heap->dev;
 	struct rb_node *n;
-	ion_phys_addr_t secur_handle;
+	int *secur_handle;
 	struct ion_sec_buffer_info *bug_info;
 	bool has_orphaned = false;
 	size_t fr_size = 0;
@@ -826,20 +830,21 @@ static int ion_sec_heap_debug_show(struct ion_heap *heap,
 		*buffer = rb_entry(n, struct ion_buffer, node);
 		if (buffer->heap->type != heap->type)
 			continue;
+		secur_handle = (int *)buffer->priv_virt;
 		bug_info = (struct ion_sec_buffer_info *)buffer->priv_virt;
-		secur_handle = bug_info->priv_phys;
 
 		if ((int)buffer->heap->type ==
 			(int)ION_HEAP_TYPE_MULTIMEDIA_SEC) {
 			ION_DUMP(s,
-				 "0x%p %8zu %3d %3d %3d %10lx %3lu %3d %3d %3d %s %s\n",
+				 "0x%p %8zu %3d %3d %3d 0x%10.x %3lu %3d %3d %3d %s %s",
 				 buffer, buffer->size, buffer->kmap_cnt,
 				 atomic_read(&buffer->ref.refcount.refs),
-				 buffer->handle_count, secur_handle,
+				 buffer->handle_count, *secur_handle,
 				 buffer->flags, bug_info->module_id,
 				 buffer->heap->id,
 				 buffer->pid, buffer->task_comm,
 				 bug_info->dbg_info.dbg_name);
+			ION_DUMP(s, ")\n");
 
 			if (buffer->heap->id == ION_HEAP_TYPE_MULTIMEDIA_SEC)
 				sec_size += buffer->size;
@@ -868,12 +873,20 @@ static int ion_sec_heap_debug_show(struct ion_heap *heap,
 	ION_DUMP(s, "%16s %16zu\n", "2d-fr-sz:", fr_size);
 	ION_DUMP(s, "%s\n", seq_line);
 
+#ifdef OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK
+	if (!down_read_trylock(&dev->client_lock)) {
+#else /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 	if (!down_read_trylock(&dev->lock)) {
+#endif /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 		ION_DUMP(s,
 			 "[%s %d] get ion dev read lock fail, try again after 5ms\n",
 			 __func__, __LINE__);
 		mdelay(5);
+#ifdef OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK
+		if (!down_read_trylock(&dev->client_lock)) {
+#else /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 		if (!down_read_trylock(&dev->lock)) {
+#endif /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 			ION_DUMP(s,
 				 "[%s %d] get ion dev lock fail again, bypass client dump\n",
 				 __func__, __LINE__);
@@ -927,7 +940,11 @@ static int ion_sec_heap_debug_show(struct ion_heap *heap,
 			mutex_unlock(&client->lock);
 		}
 	}
+#ifdef OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK
+	up_read(&dev->client_lock);
+#else /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 	up_read(&dev->lock);
+#endif /* OPLUS_FEATURE_MTK_ION_SEPARATE_LOCK */
 out:
 	return 0;
 }

@@ -100,17 +100,16 @@
 #define EP_NO_PMQOS /* If PMQoS is not ready on EP stage */
 //#define EP_NO_CLKMGR /* for clkmgr*/
 #endif
-//#define EP_NO_PMQOS /* If PMQoS is not ready on EP stage */
+#define EP_NO_PMQOS /* If PMQoS is not ready on EP stage */
 #include "inc/camera_isp.h"
 
 #ifndef EP_NO_PMQOS /* EP_NO_PMQOS is equivalent to EP_MARK_MMDVFS */
 //#include <mmdvfs_mgr.h>
 #include <mmdvfs_pmqos.h>
 #include <linux/pm_qos.h>
-#include <linux/soc/mediatek/mtk-pm-qos.h>
 /* Use this qos request to control camera dynamic frequency change */
-struct mtk_pm_qos_request isp_qos;
-struct mtk_pm_qos_request camsys_qos_request[ISP_IRQ_TYPE_INT_CAM_B_ST+1];
+struct pm_qos_request isp_qos;
+struct pm_qos_request camsys_qos_request[ISP_IRQ_TYPE_INT_CAM_B_ST+1];
 static struct ISP_PM_QOS_STRUCT G_PM_QOS[ISP_IRQ_TYPE_INT_CAM_B_ST+1];
 static u32 PMQoS_BW_value;
 static u32 target_clk;
@@ -5411,7 +5410,7 @@ static int ISP_SetPMQOS(unsigned int cmd, unsigned int module)
 		Ret = -1;
 		break;
 	}
-	mtk_pm_qos_update_request(&camsys_qos_request[module], bw_cal);
+	pm_qos_update_request(&camsys_qos_request[module], bw_cal);
 
 	if (PMQoS_BW_value != bw_cal) {
 		pr_info(
@@ -8391,14 +8390,14 @@ static long ISP_ioctl(struct file *pFile, unsigned int Cmd, unsigned long Param)
 			    sizeof(unsigned int)) == 0) {
 				if (dfs_ctrl == MTRUE) {
 					if (++camsys_qos == 1) {
-						mtk_pm_qos_add_request(
+						pm_qos_add_request(
 						  &isp_qos, PM_QOS_CAM_FREQ, 0);
 						pr_debug(
 						  "CAMSYS PMQoS turn on");
 					}
 				} else {
 					if (--camsys_qos == 0) {
-						mtk_pm_qos_remove_request(&isp_qos);
+						pm_qos_remove_request(&isp_qos);
 						pr_debug(
 							"CAMSYS PMQoS turn off");
 					}
@@ -8416,7 +8415,7 @@ static long ISP_ioctl(struct file *pFile, unsigned int Cmd, unsigned long Param)
 
 			if (copy_from_user(&dfs_update, (void *)Param,
 			    sizeof(unsigned int)) == 0) {
-				mtk_pm_qos_update_request(&isp_qos, dfs_update);
+				pm_qos_update_request(&isp_qos, dfs_update);
 				target_clk = dfs_update;
 				pr_debug("Set clock level:%d", dfs_update);
 			} else {
@@ -8528,7 +8527,7 @@ static long ISP_ioctl(struct file *pFile, unsigned int Cmd, unsigned long Param)
 				}
 				if (DebugFlag[0] == 1) {
 					if (++bw_request[DebugFlag[1]] == 1) {
-						mtk_pm_qos_add_request(
+						pm_qos_add_request(
 						  &camsys_qos_request[
 							DebugFlag[1]],
 						  PM_QOS_MM_MEMORY_BANDWIDTH,
@@ -8541,7 +8540,7 @@ static long ISP_ioctl(struct file *pFile, unsigned int Cmd, unsigned long Param)
 						break;
 					Ret = ISP_SetPMQOS(DebugFlag[0],
 							   DebugFlag[1]);
-					mtk_pm_qos_remove_request(
+					pm_qos_remove_request(
 					    &camsys_qos_request[DebugFlag[1]]);
 					bw_request[DebugFlag[1]] = 0;
 				}
@@ -9866,22 +9865,25 @@ static signed int ISP_release(
 	 * reason of close vf is to make sure camera can serve regular after
 	 * previous abnormal exit
 	 */
-
+	pr_info("Start close CAMA view finder");
 	Reg = ISP_RD32(CAM_REG_TG_VF_CON(ISP_CAM_A_IDX));
 	Reg &= 0xfffffffE;/* close Vfinder */
 	ISP_WR32(CAM_REG_TG_VF_CON(ISP_CAM_A_IDX), Reg);
+	pr_info("End close CAMA view finder");
 
+	pr_info("Start close CAMB view finder");
 	Reg = ISP_RD32(CAM_REG_TG_VF_CON(ISP_CAM_B_IDX));
 	Reg &= 0xfffffffE;/* close Vfinder */
 	ISP_WR32(CAM_REG_TG_VF_CON(ISP_CAM_B_IDX), Reg);
+	pr_info("End close CAMB view finder");
 
-
+	/*
 	for (i = ISP_CAMSV0_IDX; i <= ISP_CAMSV3_IDX; i++) {
 		Reg = ISP_RD32(CAM_REG_TG_VF_CON(i));
 		Reg &= 0xfffffffE;
 		ISP_WR32(CAM_REG_TG_VF_CON(i), Reg);
 	}
-
+	*/
 
 	/* Set DMX_SEL = 0 when ISP_release.
 	 * Reson:

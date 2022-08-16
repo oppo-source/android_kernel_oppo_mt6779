@@ -781,9 +781,6 @@ struct mtk_battery {
 
 	struct zcv_filter zcvf;
 
-/*boot mode*/
-	int boot_mode;
-
 /*simulator log*/
 	struct simulator_log log;
 

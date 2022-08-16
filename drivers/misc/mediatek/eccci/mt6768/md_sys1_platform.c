@@ -53,6 +53,7 @@ static struct pinctrl *mdcldma_pinctrl;
 //unsigned int devapc_check_flag;
 
 static void __iomem *md_sram_pd_psmcusys_base;
+static void __iomem *md_cldma_misc_base;
 
 #define TAG "mcd"
 
@@ -210,6 +211,20 @@ int md_cd_get_modem_hw_info(struct platform_device *dev_ptr,
 			ioremap_nocache(MD_PCORE_PCCIF_BASE, 0x20);
 		CCCI_BOOTUP_LOG(dev_cfg->index, TAG,
 			"pccif:%x\n", MD_PCORE_PCCIF_BASE);
+
+		node = of_find_compatible_node(NULL, NULL,
+				"mediatek,mdcldmamisc");
+		if (node) {
+			md_cldma_misc_base = of_iomap(node, 0);
+			if (!md_cldma_misc_base) {
+				CCCI_ERROR_LOG(-1, TAG,
+				"%s: md_cldma_misc_base of_iomap failed\n",
+				       node->full_name);
+				return -1;
+			}
+		} else
+			CCCI_BOOTUP_LOG(dev_cfg->index, TAG,
+				"warning: no md cldma misc in dts\n");
 
 		/*
 		 * Device tree using none flag to register irq,
@@ -418,7 +433,7 @@ void md_cd_get_md_bootup_status(struct ccci_modem *md, unsigned int *buff,
 
 	CCCI_NOTICE_LOG(md->index, TAG, "md_boot_stats len %d\n", length);
 
-	if (buff == NULL || length < 2) {
+	if (length < 2) {
 		md_cd_dump_md_bootup_status(md);
 		return;
 	}

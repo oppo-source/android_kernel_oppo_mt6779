@@ -64,5 +64,4 @@ ccflags-y += \
 	-I$(MTK_TOP)/thermal/$(MTK_PLATFORM)/inc/ \
 	-I$(MTK_TOP)/thermal/$(MTK_PLATFORM)/inc/mach \
 	-I$(MTK_TOP)/include/mt-plat \
-	-I$(MTK_TOP)/include/mt-plat/$(MTK_PLATFORM)/include/mach \
-	-I$(srctree)/drivers/gpu/mediatek/gpufreq/ \
+	-I$(MTK_TOP)/include/mt-plat/$(MTK_PLATFORM)/include/mach

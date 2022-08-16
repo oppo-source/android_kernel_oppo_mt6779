@@ -44,10 +44,6 @@ struct spower_raw_t {
 #include "mtk_spower_data_mt6761.h"
 #endif
 
-#if defined(CONFIG_MACH_MT6771)
-#include "mtk_spower_data_mt6771.h"
-#endif
-
 #if defined(CONFIG_MACH_MT3967)
 #include "mtk_spower_data_mt3967.h"
 #endif
@@ -62,10 +58,6 @@ struct spower_raw_t {
 
 #if defined(CONFIG_MACH_MT6768)
 #include "mtk_spower_data_mt6768.h"
-#endif
-
-#if defined(CONFIG_MACH_MT6893)
-#include "mtk_spower_data_mt6893.h"
 #endif
 
 #if defined(CONFIG_MACH_MT6877)

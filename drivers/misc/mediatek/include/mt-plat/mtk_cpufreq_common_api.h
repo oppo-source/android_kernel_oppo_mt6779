@@ -14,10 +14,6 @@
 #include "mt6765/include/mach/mtk_cpufreq_api.h"
 #endif
 
-#if defined(CONFIG_MACH_MT6768)
-#include "mt6768/include/mach/mtk_cpufreq_api.h"
-#endif
-
 #if defined(CONFIG_MACH_MT6761)
 #include "mt6761/include/mach/mtk_cpufreq_api.h"
 #endif
@@ -36,10 +32,6 @@
 
 #if defined(CONFIG_MACH_MT6771)
 #include "mt6771/include/mach/mtk_cpufreq_api.h"
-#endif
-
-#if defined(CONFIG_MACH_MT6781)
-#include "mt6781/include/mach/mtk_cpufreq_api.h"
 #endif
 
 #if defined(CONFIG_MACH_MT6785)
@@ -65,10 +57,6 @@
 
 #if defined(CONFIG_MACH_MT6877)
 #include "mt6877/include/mach/mtk_cpufreq_api.h"
-#endif
-
-#if defined(CONFIG_MACH_MT6893)
-#include "mt6893/include/mach/mtk_cpufreq_api.h"
 #endif
 
 #endif	/* __MTK_CPUFREQ_COMMON_API_H__ */

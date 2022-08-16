@@ -41,7 +41,7 @@ ifeq ($(CONFIG_MACH_MT6885),y)
 endif
 
 ifeq ($(CONFIG_MACH_MT6893),y)
-  obj-y += mt6885/
+#  obj-y += mt6885/
 endif
 
 ifeq ($(CONFIG_MACH_MT6873),y)
@@ -59,8 +59,4 @@ endif
 ifeq ($(CONFIG_MACH_MT6781),y)
   obj-y += mt6853/
   subdir-ccflags-y += -DDISABLE_CCU
-endif
-
-ifeq ($(CONFIG_MACH_MT6771),y)
-  obj-y += isp_50/
 endif

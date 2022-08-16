@@ -469,8 +469,11 @@ static int tcpc_device_irq_enable(struct tcpc_device *tcpc)
 		pr_err("%s tcpc init fail\n", __func__);
 		return ret;
 	}
-
+#ifdef OPLUS_FEATURE_CHG_BASIC
+	ret = tcpc_typec_init(tcpc, tcpc->desc.role_def + 1);
+#else
 	ret = tcpc_typec_init(tcpc, tcpc->desc.role_def);
+#endif
 	tcpci_unlock_typec(tcpc);
 	if (ret < 0) {
 		pr_err("%s : tcpc typec init fail\n", __func__);
@@ -552,11 +555,13 @@ static void tcpc_event_init_work(struct work_struct *work)
 	tcpci_lock_typec(tcpc);
 	tcpci_event_init(tcpc);
 #ifdef CONFIG_USB_PD_WAIT_BC12
-#ifdef ADAPT_CHARGER_V1
-	tcpc->chg_psy = power_supply_get_by_name("charger");
-#else
 	tcpc->chg_psy = devm_power_supply_get_by_phandle(
 		tcpc->dev.parent, "charger");
+#ifdef CONFIG_CHARGER_BQ2560X
+	if (IS_ERR_OR_NULL(tcpc->chg_psy)) {
+		tcpc->chg_psy = power_supply_get_by_name("bq2560x");
+		TCPC_ERR("%s get charger psy\n", __func__);
+	}
 #endif
 	if (IS_ERR_OR_NULL(tcpc->chg_psy)) {
 		tcpci_unlock_typec(tcpc);

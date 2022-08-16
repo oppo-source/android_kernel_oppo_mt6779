@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (c) 2021 MediaTek Inc.
  */
@@ -39,7 +39,7 @@
 &pio {
 	ctp_pins_default: eint0default {
 	};
-	ctp_pins_eint_as_int: eint1touch@0 {
+	ctp_pins_eint_as_int: eint@0 {
 		pins_cmd_dat {
 			pinmux = <PINMUX_GPIO14__FUNC_GPIO14>;
 			input-enable;

@@ -36,144 +36,6 @@
 			kaslr-seed = <0 0>;
 	};
 
-	cluster0_opp: opp_table0 {
-		compatible = "operating-points-v2";
-		opp-shared;
-		opp0 {
-			opp-hz = /bits/ 64 <500000000>;
-			opp-microvolt = <600000>;
-		};
-		opp1 {
-			opp-hz = /bits/ 64 <774000000>;
-			opp-microvolt = <675000>;
-		};
-		opp2 {
-			opp-hz = /bits/ 64 <875000000>;
-			opp-microvolt = <700000>;
-		};
-		opp3 {
-			opp-hz = /bits/ 64 <975000000>;
-			opp-microvolt = <725000>;
-		};
-		opp4 {
-			opp-hz = /bits/ 64 <1075000000>;
-			opp-microvolt = <750000>;
-		};
-		opp5 {
-			opp-hz = /bits/ 64 <1175000000>;
-			opp-microvolt = <775000>;
-		};
-		opp6 {
-			opp-hz = /bits/ 64 <1275000000>;
-			opp-microvolt = <800000>;
-		};
-		opp7 {
-			opp-hz = /bits/ 64 <1375000000>;
-			opp-microvolt = <825000>;
-		};
-		opp8 {
-			opp-hz = /bits/ 64 <1500000000>;
-			opp-microvolt = <856250>;
-		};
-		opp9 {
-			opp-hz = /bits/ 64 <1618000000>;
-			opp-microvolt = <875000>;
-		};
-		opp10 {
-			opp-hz = /bits/ 64 <1666000000>;
-			opp-microvolt = <900000>;
-		};
-		opp11 {
-			opp-hz = /bits/ 64 <1733000000>;
-			opp-microvolt = <925000>;
-		};
-		opp12 {
-			opp-hz = /bits/ 64 <1800000000>;
-			opp-microvolt = <950000>;
-		};
-		opp13 {
-			opp-hz = /bits/ 64 <1866000000>;
-			opp-microvolt = <981250>;
-		};
-		opp14 {
-			opp-hz = /bits/ 64 <1933000000>;
-			opp-microvolt = <1006250>;
-		};
-		opp15 {
-			opp-hz = /bits/ 64 <2000000000>;
-			opp-microvolt = <1031250>;
-		};
-	};
-
-	cluster1_opp: opp_table1 {
-		compatible = "operating-points-v2";
-		opp-shared;
-		opp0 {
-			opp-hz = /bits/ 64 <774000000>;
-			opp-microvolt = <675000>;
-		};
-		opp1 {
-			opp-hz = /bits/ 64 <835000000>;
-			opp-microvolt = <693750>;
-		};
-		opp2 {
-			opp-hz = /bits/ 64 <919000000>;
-			opp-microvolt = <718750>;
-		};
-		opp3 {
-			opp-hz = /bits/ 64 <1002000000>;
-			opp-microvolt = <743750>;
-		};
-		opp4 {
-			opp-hz = /bits/ 64 <1085000000>;
-			opp-microvolt = <775000>;
-		};
-		opp5 {
-			opp-hz = /bits/ 64 <1169000000>;
-			opp-microvolt = <800000>;
-		};
-		opp6 {
-			opp-hz = /bits/ 64 <1308000000>;
-			opp-microvolt = <843750>;
-		};
-		opp7 {
-			opp-hz = /bits/ 64 <1419000000>;
-			opp-microvolt = <875000>;
-		};
-		opp8 {
-			opp-hz = /bits/ 64 <1530000000>;
-			opp-microvolt = <912500>;
-		};
-		opp9 {
-			opp-hz = /bits/ 64 <1670000000>;
-			opp-microvolt = <956250>;
-		};
-		opp10 {
-			opp-hz = /bits/ 64 <1733000000>;
-			opp-microvolt = <981250>;
-		};
-		opp11 {
-			opp-hz = /bits/ 64 <1796000000>;
-			opp-microvolt = <1012500>;
-		};
-		opp12 {
-			opp-hz = /bits/ 64 <1860000000>;
-			opp-microvolt = <1037500>;
-		};
-		opp13 {
-			opp-hz = /bits/ 64 <1923000000>;
-			opp-microvolt = <1062500>;
-		};
-		opp14 {
-			opp-hz = /bits/ 64 <1986000000>;
-			opp-microvolt = <1093750>;
-		};
-		opp15 {
-			opp-hz = /bits/ 64 <2050000000>;
-			opp-microvolt = <1118750>;
-		};
-	};
-
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -184,9 +46,6 @@
 			reg = <0x0000>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff &s2idle>;
 		};
@@ -197,9 +56,6 @@
 			reg = <0x0100>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff &s2idle>;
 		};
@@ -210,9 +66,6 @@
 			reg = <0x0200>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff &s2idle>;
 		};
@@ -223,9 +76,6 @@
 			reg = <0x0300>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff &s2idle>;
 		};
@@ -236,9 +86,6 @@
 			reg = <0x0400>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff  &s2idle>;
 		};
@@ -249,9 +96,6 @@
 			reg = <0x0500>;
 			enable-method = "psci";
 			clock-frequency = <2000000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <427>;
 			cpu-idle-states = <&cpuoff_l &clusteroff_l
 						&mcusysoff  &s2idle>;
 		};
@@ -262,9 +106,6 @@
 			reg = <0x0600>;
 			enable-method = "psci";
 			clock-frequency = <2050000000>;
-			operating-points-v2 = <&cluster1_opp>;
-			dynamic-power-coefficient = <275>;
-			capacity-dmips-mhz = <1024>;
 			cpu-idle-states = <&cpuoff_b &clusteroff_b
 						&mcusysoff  &s2idle>;
 		};
@@ -275,9 +116,6 @@
 			reg = <0x0700>;
 			enable-method = "psci";
 			clock-frequency = <2050000000>;
-			operating-points-v2 = <&cluster1_opp>;
-			dynamic-power-coefficient = <275>;
-			capacity-dmips-mhz = <1024>;
 			cpu-idle-states = <&cpuoff_b &clusteroff_b
 						&mcusysoff &s2idle>;
 		};
@@ -506,6 +344,13 @@
 		#size-cells = <2>;
 		ranges;
 
+		zmc-default {
+			compatible = "mediatek,zone_movable_cma";
+			size = <0 0x2d000000>;
+			alignment = <0 0x1000000>;
+			alloc-ranges = <0 0xc0000000 4 0x00000000>;
+		};
+
 		reserve-memory-sspm_share {
 			compatible = "mediatek,reserve-memory-sspm_share";
 			no-map;
@@ -561,14 +406,6 @@
 			size = <0 0x00320000>; /*3 MB share mem size */
 			alignment = <0 0x1000000>;
 			alloc-ranges = <0 0x50000000 0 0x40000000>;
-		};
-
-		ssmr_cma_mem: ssmr-reserved-cma_memory {
-			compatible = "shared-dma-pool";
-			reusable;
-			size = <0 0x10000000>;
-			alignment = <0 0x1000000>;
-			alloc-range = <0 0xc0000000 0 0x10000000>;
 		};
 	};
 
@@ -2547,7 +2384,7 @@
 
 		/* Reference clock control mode */
 		/* SW mode: 0, Half-HW mode: 1, HW mode: 2 */
-		mediatek,refclk_ctrl = <1>;
+		mediatek,refclk_ctrl = <0>;
 	};
 
 	mipi_rx_ana_csi0@11c10000 {
@@ -3210,7 +3047,7 @@
 		larb_groups = <0 1 2 4 7 9 11 13 14 16 17 19 20>;
 		larb0 = <8 7 8 8>;
 		larb1 = <7 8 8 9 8>;
-		larb2 = <7 7 7 7 8>;
+		larb2 = <7 7 8 8 8>;
 		larb4 = <6 7 8 7 7 7 7 7 7 6 6 7 8 9>;
 		larb7 = <7 8 8 8 7 7 7 7 7 7 7 7 8>;
 		larb9 = <7 7 7 7 7 7 8 8 8 8 7 7 8 9 8 6 6 7
@@ -4078,14 +3915,9 @@
 		mediatek,mailbox-gce = <&gce_mbox>;
 		mediatek,dec_gce_th_num = <1>; /* VDEC GCE HW THREAD NUM*/
 		mediatek,enc_gce_th_num = <1>; /* VDEC GCE HW THREAD NUM*/
-#if defined(CONFIG_MTK_SEC_VIDEO_PATH_SUPPORT)
 		mboxes = <&gce_mbox 7 0 CMDQ_THR_PRIO_1>,
 			<&gce_mbox 12 0 CMDQ_THR_PRIO_1>,
 			<&gce_mbox_sec 12 0 CMDQ_THR_PRIO_1>;
-#else
-		mboxes = <&gce_mbox 7 0 CMDQ_THR_PRIO_1>,
-			<&gce_mbox 12 0 CMDQ_THR_PRIO_1>;
-#endif
 		gce-event-names = "venc_eof",
 			"venc_cmdq_pause_done",
 			"venc_mb_done",
@@ -4290,10 +4122,6 @@
 		};
 	};
 
-	camera_af_hw_node: camera_af_hw_node {
-		compatible = "mediatek,camera_af_lens";
-	};
-
 	camisp: camisp@1a000000 {
 		compatible = "mediatek,camisp", "syscon";
 		reg = <0 0x1a000000 0 0x10000>;
@@ -4442,10 +4270,7 @@
 		clock-names = "MDP_RDMA0", "GCE", "GCE_TIMER";
 		mmsys_config = <&mdpsys_config>;
 		mm_mutex   = <&mdp_mutex>;
-		mboxes =
-#if defined(CONFIG_MTK_SEC_VIDEO_PATH_SUPPORT) || defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
-			<&gce_mbox_sec 10 0 CMDQ_THR_PRIO_1>,
-#endif
+		mboxes = <&gce_mbox_sec 10 0 CMDQ_THR_PRIO_1>,
 			<&gce_mbox 19 0 CMDQ_THR_PRIO_1>,
 			<&gce_mbox 20 0 CMDQ_THR_PRIO_1>,
 			<&gce_mbox 21 0 CMDQ_THR_PRIO_1>,
@@ -4635,12 +4460,8 @@
 		interrupts = <GIC_SPI 338 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&ipesys CLK_IPE_FD>;
 		clock-names = "FD_CLK_IPE_FD";
-#if defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 		mboxes = <&gce_mbox 14 0 CMDQ_THR_PRIO_1>,
 			 <&gce_mbox_sec 11 0 CMDQ_THR_PRIO_1>;
-#else
-		mboxes = <&gce_mbox 14 0 CMDQ_THR_PRIO_1>;
-#endif
 		fdvt_frame_done = <CMDQ_EVENT_FDVT_DONE>;
 	};
 
@@ -4694,11 +4515,6 @@
 	odm: odm {
 		compatible = "simple-bus";
 		/* reserved for overlay by odm */
-	};
-
-	ssmr {
-		compatible = "mediatek,trusted_mem";
-		memory-region = <&ssmr_cma_mem>;
 	};
 
 	memory_ssmr_features: memory-ssmr-features {
@@ -4764,7 +4580,6 @@
 
 	mt_charger: mt_charger {
 		compatible = "mediatek,mt-charger";
-		bootmode = <&chosen>;
 	};
 
 	lk_charger: lk_charger {

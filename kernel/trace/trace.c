@@ -54,6 +54,11 @@
 #ifdef CONFIG_MTK_FTRACER
 #include "mtk_ftrace.h"
 #endif
+
+/* #ifdef OPLUS_BUG_STABILITY */
+#include <soc/oplus/system/oplus_project.h>
+/* #endif */
+
 /*
  * On boot up, the ring buffer is set to the minimum size, so that
  * we do not waste memory on systems that are not using tracing.
@@ -1958,13 +1963,14 @@ static void tracing_stop_tr(struct trace_array *tr)
 
 static int trace_save_cmdline(struct task_struct *tsk)
 {
-	unsigned tpid, idx;
+	unsigned pid, idx;
 
 	/* treat recording of idle task as a success */
 	if (!tsk->pid)
 		return 1;
 
-	tpid = tsk->pid & (PID_MAX_DEFAULT - 1);
+	if (unlikely(tsk->pid > PID_MAX_DEFAULT))
+		return 0;
 
 	/*
 	 * It's not the end of the world if we don't get
@@ -1975,15 +1981,26 @@ static int trace_save_cmdline(struct task_struct *tsk)
 	if (!arch_spin_trylock(&trace_cmdline_lock))
 		return 0;
 
-	idx = savedcmd->map_pid_to_cmdline[tpid];
+	idx = savedcmd->map_pid_to_cmdline[tsk->pid];
 	if (idx == NO_CMDLINE_MAP) {
 		idx = (savedcmd->cmdline_idx + 1) % savedcmd->cmdline_num;
 
-		savedcmd->map_pid_to_cmdline[tpid] = idx;
+		/*
+		 * Check whether the cmdline buffer at idx has a pid
+		 * mapped. We are going to overwrite that entry so we
+		 * need to clear the map_pid_to_cmdline. Otherwise we
+		 * would read the new comm for the old pid.
+		 */
+		pid = savedcmd->map_cmdline_to_pid[idx];
+		if (pid != NO_CMDLINE_MAP)
+			savedcmd->map_pid_to_cmdline[pid] = NO_CMDLINE_MAP;
+
+		savedcmd->map_cmdline_to_pid[idx] = tsk->pid;
+		savedcmd->map_pid_to_cmdline[tsk->pid] = idx;
+
 		savedcmd->cmdline_idx = idx;
 	}
 
-	savedcmd->map_cmdline_to_pid[idx] = tsk->pid;
 	set_cmdline(idx, tsk->comm);
 
 	arch_spin_unlock(&trace_cmdline_lock);
@@ -1994,7 +2011,6 @@ static int trace_save_cmdline(struct task_struct *tsk)
 static void __trace_find_cmdline(int pid, char comm[])
 {
 	unsigned map;
-	int tpid;
 
 	if (!pid) {
 		strcpy(comm, "<idle>");
@@ -2006,16 +2022,16 @@ static void __trace_find_cmdline(int pid, char comm[])
 		return;
 	}
 
-	tpid = pid & (PID_MAX_DEFAULT - 1);
-	map = savedcmd->map_pid_to_cmdline[tpid];
-	if (map != NO_CMDLINE_MAP) {
-		tpid = savedcmd->map_cmdline_to_pid[map];
-		if (tpid == pid) {
-			strlcpy(comm, get_saved_cmdlines(map), TASK_COMM_LEN);
-			return;
-		}
+	if (pid > PID_MAX_DEFAULT) {
+		strcpy(comm, "<...>");
+		return;
 	}
-	strcpy(comm, "<...>");
+
+	map = savedcmd->map_pid_to_cmdline[pid];
+	if (map != NO_CMDLINE_MAP)
+		strlcpy(comm, get_saved_cmdlines(map), TASK_COMM_LEN);
+	else
+		strcpy(comm, "<...>");
 }
 
 void trace_find_cmdline(int pid, char comm[])
@@ -2304,7 +2320,11 @@ trace_event_buffer_lock_reserve(struct ring_buffer **current_rb,
 	    (entry = this_cpu_read(trace_buffered_event))) {
 		/* Try to use the per cpu buffer first */
 		val = this_cpu_inc_return(trace_buffered_event_cnt);
-		if ((len < (PAGE_SIZE - sizeof(*entry) - sizeof(entry->array[0]))) && val == 1) {
+                #ifdef OPLUS_BUG_STABILITY
+                if ((len < (PAGE_SIZE - sizeof(*entry) - sizeof(entry->array[0]))) && val == 1) {
+                #else
+		if ((len < (PAGE_SIZE - sizeof(*entry))) && val == 1) {
+                #endif /*OPLUS_BUG_STABILITY*/
 			trace_event_setup(entry, type, flags, pc);
 			entry->array[0] = len;
 			return entry;
@@ -2826,7 +2846,7 @@ static char *get_trace_buf(void)
 {
 	struct trace_buffer_struct *buffer = this_cpu_ptr(trace_percpu_buffer);
 
-	if (!trace_percpu_buffer || buffer->nesting >= 4)
+	if (!buffer || buffer->nesting >= 4)
 		return NULL;
 
 	buffer->nesting++;
@@ -8031,6 +8051,14 @@ static int instance_rmdir(const char *name)
 
 static __init void create_trace_instances(struct dentry *d_tracer)
 {
+/* #ifdef OPLUS_BUG_STABILITY */
+/* disable ftrace for aging test */
+	if (AGING == get_eng_version()) {
+		pr_info("skip create_trace_instances for aging\n");
+		return;
+	}
+/* #endif */
+
 	trace_instance_dir = tracefs_create_instance_dir("instances", d_tracer,
 							 instance_mkdir,
 							 instance_rmdir);

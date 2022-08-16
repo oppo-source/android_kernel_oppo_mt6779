@@ -164,8 +164,6 @@ static unsigned int xo_mode_init[XO_NUMBER];
 /* #define CLK_BUF_HW_BBLPM_EN */
 static unsigned int bblpm_switch = 2;
 
-static unsigned int bblpm_cnt;
-
 /* todo: remove */
 static unsigned int pwrap_dcxo_en_init;
 static unsigned int pwrap_rc_spi_en_init;
@@ -1799,7 +1797,7 @@ void clk_buf_post_init(void)
 #endif
 #endif
 
-//XO_NFC as 6382 26M CLK, so can't disable clk for 6382 project
+//6382 use NFC GPIO as RST, so can't disable clk for 6382 project
 /*#ifndef CONFIG_MTK_NFC_CLKBUF_ENABLE
 	clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
 	CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;

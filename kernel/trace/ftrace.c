@@ -5024,10 +5024,7 @@ int ftrace_regex_release(struct inode *inode, struct file *file)
 
 	parser = &iter->parser;
 	if (trace_parser_loaded(parser)) {
-		int enable = !(iter->flags & FTRACE_ITER_NOTRACE);
-
-		ftrace_process_regex(iter, parser->buffer,
-				     parser->idx, enable);
+		ftrace_match_records(iter->hash, parser->buffer, parser->idx);
 	}
 
 	trace_parser_put(parser);

@@ -478,6 +478,7 @@ static __s32 mtkts_bts_thermistor_conver_temp(__s32 Res)
 	int asize = 0;
 	__s32 RES1 = 0, RES2 = 0;
 	__s32 TAP_Value = -200, TMP1 = 0, TMP2 = 0;
+
 #ifdef APPLY_PRECISE_BTS_TEMP
 	TAP_Value = TAP_Value * 1000;
 #endif
@@ -551,16 +552,7 @@ static __s32 mtk_ts_bts_volt_to_temp(__u32 dwVolt)
 	dwVCriAP2 = (g_TAP_over_critical_low + g_RAP_pull_up_R);
 	do_div(dwVCriAP, dwVCriAP2);
 
-#ifdef APPLY_PRECISE_BTS_TEMP
-	if ((dwVolt / 100) > ((__u32)dwVCriAP)) {
-		TRes = g_TAP_over_critical_low;
-	} else {
-		/* TRes = (39000*dwVolt) / (1800-dwVolt); */
-		/* TRes = (RAP_PULL_UP_R*dwVolt) / (RAP_PULL_UP_VOLT-dwVolt); */
-		TRes = ((long long)g_RAP_pull_up_R * dwVolt) /
-					(g_RAP_pull_up_voltage * 100 - dwVolt);
-	}
-#else
+
 	if (dwVolt > ((__u32)dwVCriAP)) {
 		TRes = g_TAP_over_critical_low;
 	} else {
@@ -569,7 +561,6 @@ static __s32 mtk_ts_bts_volt_to_temp(__u32 dwVolt)
 		TRes = (g_RAP_pull_up_R * dwVolt) /
 					(g_RAP_pull_up_voltage - dwVolt);
 	}
-#endif
 	/* ------------------------------------------------------------------ */
 	g_AP_TemperatureR = TRes;
 
@@ -579,6 +570,8 @@ static __s32 mtk_ts_bts_volt_to_temp(__u32 dwVolt)
 	return BTS_TMP;
 }
 
+extern bool is_kthread_get_adc(void);
+extern int get_bb_ntc_volt(void);
 static int get_hw_bts_temp(void)
 {
 
@@ -593,17 +586,20 @@ static int get_hw_bts_temp(void)
 #endif
 
 #if defined(CONFIG_MEDIATEK_MT6577_AUXADC)
-	ret = iio_read_channel_processed(thermistor_ch0, &val);
-	if (ret < 0) {
-		mtkts_bts_printk("Busy/Timeout, IIO ch read failed %d\n", ret);
-		return ret;
+	if (!is_kthread_get_adc()) {
+		ret = iio_read_channel_processed(thermistor_ch0, &val);
+		if (ret < 0) {
+			mtkts_bts_printk("Busy/Timeout, IIO ch read failed %d\n", ret);
+			return ret;
+		}
+	} else {
+		val = get_bb_ntc_volt();
 	}
 
-#ifdef APPLY_PRECISE_BTS_TEMP
-	ret = val * 100;
-#else
+
+	/* NOT need to do the conversion "val * 1500 / 4096" */
+	/* iio_read_channel_processed can get mV immediately */
 	ret = val;
-#endif
 
 #else
 #if defined(APPLY_AUXADC_CALI_DATA)
@@ -664,12 +660,7 @@ static int get_hw_bts_temp(void)
 	/* #define AUXADC_PRECISE      4096 // 12 bits */
 #if defined(APPLY_AUXADC_CALI_DATA)
 #else
-
-#ifdef APPLY_PRECISE_BTS_TEMP
-	ret = (val * 9375) >>  8;
-#else
 	ret = ret * 1500 / 4096;
-#endif
 #endif
 #endif /*CONFIG_MEDIATEK_MT6577_AUXADC*/
 
@@ -720,13 +711,6 @@ static int mtkts_bts_get_temp(struct thermal_zone_device *thermal, int *t)
 
 	/* if ((int) *t > 52000) */
 	/* mtkts_bts_dprintk("T=%d\n", (int) *t); */
-
-#ifdef CONFIG_LVTS_DYNAMIC_ENABLE_REBOOT
-	if (*t > DYNAMIC_REBOOT_TRIP_TEMP)
-		lvts_enable_all_hw_protect();
-	else if (*t < DYNAMIC_REBOOT_EXIT_TEMP)
-		lvts_disable_all_hw_protect();
-#endif
 
 	if ((int)*t >= polling_trip_temp1)
 		thermal->polling_delay = interval * 1000;
@@ -1132,6 +1116,7 @@ static int mtkts_bts_param_read(struct seq_file *m, void *v)
 	seq_printf(m, "%d\n", g_TAP_over_critical_low);
 	seq_printf(m, "%d\n", g_RAP_ntc_table);
 	seq_printf(m, "%d\n", g_RAP_ADC_channel);
+
 	return 0;
 }
 

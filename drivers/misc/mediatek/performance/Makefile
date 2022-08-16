@@ -15,9 +15,6 @@ subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/performance/perf_ioctl/ \
 		    -I$(srctree)/drivers/misc/mediatek/base/power/include/ \
 		    -I$(srctree)/drivers/misc/mediatek/include/
 
-ifeq ($(CONFIG_MACH_MT6739),y)
-subdir-ccflags-y += -DMTK_MT6739_MTK_CPU_FREQ
-endif
 
 obj-y += perfmgr_main.o
 obj-y += base/
@@ -49,8 +46,6 @@ obj-$(CONFIG_MTK_FPSGO_V3) += fpsgo_v3_topology/
 else
 obj-$(CONFIG_MTK_FPSGO_V3) += fpsgo_v3/
 endif
-
-obj-$(CONFIG_MTK_FRS) += frs/
 
 ifneq (,$(filter $(CONFIG_MTK_LEGACY_THERMAL_PLATFORM), "mt6779"))
 		obj-$(CONFIG_MTK_EARA_THERMAL) += eara_thermal/

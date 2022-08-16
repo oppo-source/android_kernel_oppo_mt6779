@@ -41,7 +41,7 @@
 #include "mtk_clkbuf_ctl.h"
 #endif
 
-#if defined(CONFIG_SCSI_UFS_HPB)
+#if defined(CONFIG_UFSHPB)
 #include "ufshpb.h"
 #endif
 
@@ -1828,7 +1828,7 @@ static void ufs_mtk_setup_xfer_req(struct ufs_hba *hba, int tag,
 		lrbp = &hba->lrb[tag];
 		cmd = lrbp->cmd;
 
-		if (!ufs_mtk_is_data_cmd(cmd->cmnd[0], false))
+		if (!ufs_mtk_is_data_cmd(cmd, false))
 			return;
 
 		ufs_mtk_biolog_send_command(tag, cmd);
@@ -1851,7 +1851,7 @@ static void ufs_mtk_compl_xfer_req(struct ufs_hba *hba, int tag,
 		lrbp = &hba->lrb[tag];
 		cmd = lrbp->cmd;
 
-		if (!ufs_mtk_is_data_cmd(cmd->cmnd[0], false))
+		if (!ufs_mtk_is_data_cmd(cmd, false))
 			return;
 
 		req_mask = hba->outstanding_reqs &
@@ -1903,14 +1903,14 @@ static bool ufs_mtk_has_vcc_always_on(struct ufs_hba *hba) {
 	struct ufs_mtk_host *host = ufshcd_get_variant(hba);
 
 	return (host && host->cfg
-		&& (host->cfg->quirks & UFS_MTK_HOST_QUIRK_UFS_VCC_ALWAYS_ON));
+		&& (host->cfg->quirks | UFS_MTK_HOST_QUIRK_UFS_VCC_ALWAYS_ON));
 }
 
 static bool ufs_mtk_has_ufshci_perf_heuristic(struct ufs_hba *hba) {
 	struct ufs_mtk_host *host = ufshcd_get_variant(hba);
 
 	return (host && host->cfg
-		&& (host->cfg->quirks & UFS_MTK_HOST_QUIRK_UFS_HCI_PERF_HEURISTIC));
+		&& (host->cfg->quirks | UFS_MTK_HOST_QUIRK_UFS_HCI_PERF_HEURISTIC));
 }
 
 /**

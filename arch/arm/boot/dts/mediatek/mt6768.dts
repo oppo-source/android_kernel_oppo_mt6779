@@ -4,7 +4,6 @@
 */
 
 /dts-v1/;
-#include <dt-bindings/mmc/mt6768-msdc.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/mmc/mt6768-msdc.h>
@@ -16,8 +15,6 @@
 #include <dt-bindings/mfd/mt6358-irq.h>
 #include <dt-bindings/gce/mt6768-gce.h>
 #include <generated/autoconf.h>
-#include <dt-bindings/soc/mediatek,boot-mode.h>
-
 
 / {
 	model = "MT6768";
@@ -36,144 +33,6 @@ page_owner=on loop.max_part=7";
 		kaslr-seed = <0 0>;
 	};
 
-	cluster0_opp: opp_table0 {
-		compatible = "operating-points-v2";
-		opp-shared;
-		opp0 {
-			opp-hz = /bits/ 64 <500000000>;
-			opp-microvolt = <650000>;
-		};
-		opp1 {
-			opp-hz = /bits/ 64 <774000000>;
-			opp-microvolt = <675000>;
-		};
-		opp2 {
-			opp-hz = /bits/ 64 <850000000>;
-			opp-microvolt = <700000>;
-		};
-		opp3 {
-			opp-hz = /bits/ 64 <900000000>;
-			opp-microvolt = <718750>;
-		};
-		opp4 {
-			opp-hz = /bits/ 64 <950000000>;
-			opp-microvolt = <731250>;
-		};
-		opp5 {
-			opp-hz = /bits/ 64 <999000000>;
-			opp-microvolt = <743750>;
-		};
-		opp6 {
-			opp-hz = /bits/ 64 <1050000000>;
-			opp-microvolt = <762500>;
-		};
-		opp7 {
-			opp-hz = /bits/ 64 <1100000000>;
-			opp-microvolt = <775000>;
-		};
-		opp8 {
-			opp-hz = /bits/ 64 <1175000000>;
-			opp-microvolt = <800000>;
-		};
-		opp9 {
-			opp-hz = /bits/ 64 <1275000000>;
-			opp-microvolt = <831250>;
-		};
-		opp10 {
-			opp-hz = /bits/ 64 <1325000000>;
-			opp-microvolt = <843750>;
-		};
-		opp11 {
-			opp-hz = /bits/ 64 <1375000000>;
-			opp-microvolt = <856250>;
-		};
-		opp12 {
-			opp-hz = /bits/ 64 <1450000000>;
-			opp-microvolt = <88125>;
-		};
-		opp13 {
-			opp-hz = /bits/ 64 <1500000000>;
-			opp-microvolt = <893750>;
-		};
-		opp14 {
-			opp-hz = /bits/ 64 <1625000000>;
-			opp-microvolt = <931250>;
-		};
-		opp15 {
-			opp-hz = /bits/ 64 <1700000000>;
-			opp-microvolt = <962500>;
-		};
-	};
-
-	cluster1_opp: opp_table1 {
-		compatible = "operating-points-v2";
-		opp-shared;
-		opp0 {
-			opp-hz = /bits/ 64 <850000000>;
-			opp-microvolt = <675000>;
-		};
-		opp1 {
-			opp-hz = /bits/ 64 <909000000>;
-			opp-microvolt = <700000>;
-		};
-		opp2 {
-			opp-hz = /bits/ 64 <998000000>;
-			opp-microvolt = <731250>;
-		};
-		opp3 {
-			opp-hz = /bits/ 64 <1087000000>;
-			opp-microvolt = <768750>;
-		};
-		opp4 {
-			opp-hz = /bits/ 64 <1176000000>;
-			opp-microvolt = <800000>;
-		};
-		opp5 {
-			opp-hz = /bits/ 64 <1295000000>;
-			opp-microvolt = <843750>;
-		};
-		opp6 {
-			opp-hz = /bits/ 64 <1354000000>;
-			opp-microvolt = <868750>;
-		};
-		opp7 {
-			opp-hz = /bits/ 64 <1443000000>;
-			opp-microvolt = <900000>;
-		};
-		opp8 {
-			opp-hz = /bits/ 64 <1532000000>;
-			opp-microvolt = <931250>;
-		};
-		opp9 {
-			opp-hz = /bits/ 64 <1621000000>;
-			opp-microvolt = <968750>;
-		};
-		opp10 {
-			opp-hz = /bits/ 64 <1710000000>;
-			opp-microvolt = <1000000>;
-		};
-		opp11 {
-			opp-hz = /bits/ 64 <1800000000>;
-			opp-microvolt = <1031250>;
-		};
-		opp12 {
-			opp-hz = /bits/ 64 <1850000000>;
-			opp-microvolt = <1050000>;
-		};
-		opp13 {
-			opp-hz = /bits/ 64 <1900000000>;
-			opp-microvolt = <1062500>;
-		};
-		opp14 {
-			opp-hz = /bits/ 64 <1950000000>;
-			opp-microvolt = <1075000>;
-		};
-		opp15 {
-			opp-hz = /bits/ 64 <2000000000>;
-			opp-microvolt = <1087500>;
-		};
-	};
-
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -184,9 +43,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0000>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -197,9 +53,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0100>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -210,9 +63,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0200>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -223,9 +73,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0300>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -236,9 +83,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0400>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -249,9 +93,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0500>;
 			enable-method = "psci";
 			clock-frequency = <1701000000>;
-			operating-points-v2 = <&cluster0_opp>;
-			dynamic-power-coefficient = <85>;
-			capacity-dmips-mhz = <495>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -262,9 +103,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0600>;
 			enable-method = "psci";
 			clock-frequency = <2171000000>;
-			operating-points-v2 = <&cluster1_opp>;
-			dynamic-power-coefficient = <275>;
-			capacity-dmips-mhz = <1024>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -275,9 +113,6 @@ page_owner=on loop.max_part=7";
 			reg = <0x0700>;
 			enable-method = "psci";
 			clock-frequency = <2171000000>;
-			operating-points-v2 = <&cluster1_opp>;
-			dynamic-power-coefficient = <275>;
-			capacity-dmips-mhz = <1024>;
 			cpu-idle-states = <&STANDBY &MCDI_CPU &MCDI_CLUSTER>,
 				<&idledram &idlesyspll &idlebus26m &SUSPEND>;
 		};
@@ -632,19 +467,6 @@ page_owner=on loop.max_part=7";
 			"clk_pll_4",
 			"clk_pll_5",
 			"clk_pll_6";
-
-		dvfsrc-opp-num = <3>;
-		dvfs-opp =
-			/*vcore		vsram	uv	rc  spm	freq	mux*/
-			< 650000	900000	0xff	0x0 0x0	165	1>,
-			< 650000	900000	0xff	0x0 0x0	250	2>,
-			< 700000	900000	0xff	0x2 0x8	330	4>,
-			< 800000	900000	0xff	0x3 0xc	416	6>;
-
-		gpio = <&gpio 1>;
-		gpio-feature = "gpio-mode";
-		gpio-feature-cfg = <1>;
-		gpio-mode-reg = <0x430 0x7 8 1>;
 	};
 
 	topckgen: topckgen@10000000 {
@@ -2318,32 +2140,6 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 		clock-names = "btifc","apdmac";
 	};
 
-	mmc0: mmc@11230000 {
-		compatible = "mediatek,mt6768-mmc";
-		reg = <0 0x11230000 0 0x10000>,
-			<0 0x11cd0000 0 0x1000>;
-		interrupts = <GIC_SPI 100 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&topckgen CLK_TOP_MSDC50_0>,
-			<&infracfg_ao CLK_IFR_MSDC0>,
-			<&infracfg_ao CLK_IFR_MSDC0_SRC>,
-			<&infracfg_ao CLK_IFR_FAES_FDE>;
-		clock-names = "source", "hclk", "source_cg",
-			"crypto_clk";
-		status = "disabled";
-	};
-
-	mmc1: mmc@11240000 {
-		compatible = "mediatek,mt6768-mmc";
-		reg = <0 0x11240000 0 0x10000>,
-			<0 0x11c90000 0 0x1000>;
-		interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_LOW>;
-		clocks = <&topckgen CLK_TOP_MSDC30_1>,
-			<&infracfg_ao CLK_IFR_MSDC1>,
-			<&infracfg_ao CLK_IFR_MSDC1_SRC>;
-		clock-names = "source", "hclk", "source_cg";
-		status = "disabled";
-	};
-
 	consys: consys@18002000 {
 		compatible = "mediatek,mt6768-consys";
 		#address-cells = <2>;
@@ -2705,7 +2501,7 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 	};
 
 	mali@13040000 {
-		compatible = "mediatek,mali", "arm,mali-valhall";
+		compatible = "mediatek,mali", "arm,mali-midgard", "arm,mali-bifrost";
 		reg = <0 0x13040000 0 0x4000>;
 		interrupts =
 			<GIC_SPI 274 IRQ_TYPE_LEVEL_LOW>,
@@ -2719,11 +2515,9 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 			"JOB",
 			"EVENT",
 			"PWR";
-
-		ged-supply = <&ged>;
 	};
 
-	gpufreq: gpufreq {
+	gpufreq {
 		compatible = "mediatek,mt6768-gpufreq";
 		clocks =
 			<&topckgen CLK_TOP_MFG_SEL>,	   /* clk_mux */
@@ -2743,13 +2537,6 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 			"mtcmos_mfg",
 			"mtcmos_mfg_core0",
 			"mtcmos_mfg_core1";
-		nvmem-cells = <&efuse_segment>;
-		nvmem-cell-names = "efuse_segment_cell";
-	};
-
-	ged: ged {
-		compatible = "mediatek,ged";
-		gpufreq-supply = <&gpufreq>;
 	};
 
 	mmsys_config: mmsys_config@14000000 {
@@ -3599,8 +3386,6 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 		compatible = "mediatek,mt-charger";
 	};
 
-	msdc1_ins: msdc1_ins {
-	};
 	lk_charger: lk_charger {
 		compatible = "mediatek,lk_charger";
 		enable_anime;
@@ -4017,7 +3802,6 @@ defined(CONFIG_MTK_CAM_SECURITY_SUPPORT)
 #include "mediatek/cust_mt6768_msdc.dtsi"
 #include "mediatek/mt6370.dtsi"
 #include "mediatek/mt6370_pd.dtsi"
-#include "mediatek/cust_mt6768_msdc.dtsi"
 #ifdef CONFIG_CHARGER_RT9471
 #include "mediatek/rt9471.dtsi"
 #endif

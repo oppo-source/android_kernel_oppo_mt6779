@@ -72,10 +72,6 @@ else
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/ppm_v3/src/mach/$(PDIR)
 endif
 
-ifeq ($(CONFIG_MACH_MT6893),y)
-ccflags-y  += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/v1
-endif
-
 obj-y += mtk_ta.o
 
 ifneq (,$(filter $(CONFIG_MTK_LEGACY_THERMAL_PLATFORM), "mt6779"))
@@ -102,6 +98,7 @@ ifeq ($(CONFIG_MTK_THERMAL_PA_VIA_ATCMD),y)
 endif
 
 ccflags-y  += -I$(srctree)/drivers/gpu/mediatek/mt-plat/
+
 obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_2nd.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_atm.o
@@ -192,10 +189,10 @@ ifeq ($(CONFIG_MTK_THERMAL_PA_VIA_ATCMD),y)
 endif
 
 ifeq ($(CONFIG_MTK_PUMP_EXPRESS_PLUS_30_SUPPORT),y)
-	obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1_414.o
+	obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
 else
 	ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
-		obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1_414.o
+		obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
 		ifeq ($(CONFIG_MTK_DUAL_CHARGER_SUPPORT),y)
 			obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_2nd.o
 		endif

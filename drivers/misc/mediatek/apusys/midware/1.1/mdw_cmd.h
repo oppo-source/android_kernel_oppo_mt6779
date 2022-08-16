@@ -50,7 +50,6 @@ struct mdw_apu_cmd {
 	struct timespec64 end_ts;
 
 	int state;
-	uint64_t sc_rets;
 
 	struct mdw_usr *usr; // usr
 	struct mutex mtx;

@@ -110,19 +110,13 @@ static bool mdla_check_cmd_valid(
 {
 	uint64_t out_size;
 
-	if ((uint64_t)ce->kva == 0) {
-		mdla_err("%s:%d query kva = 0\n", __func__, __LINE__);
+	if ((uint64_t)ce->kva == 0)
 		return false;
-	}
-	if (out_end < (uint64_t)ce->kva) {
-		mdla_err("%s:%d invalid cmd buffer addr\n", __func__, __LINE__);
-		return false;
-	}
+	if (out_end < (uint64_t)ce->kva)
+		return -EINVAL;
 	out_size = out_end - (uint64_t)ce->kva;
-	if (out_size < ce->count*MREG_CMD_SIZE) {
-		mdla_err("%s:%d invalid cmd buffer size\n", __func__, __LINE__);
+	if (out_size < ce->count*MREG_CMD_SIZE)
 		return false;
-	}
 	return true;
 }
 

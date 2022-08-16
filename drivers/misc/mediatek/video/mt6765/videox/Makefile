@@ -66,6 +66,9 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/video/include/     \
              -I$(srctree)/drivers/misc/mediatek/mmdvfs \
              -I$(srctree)/drivers/devfreq	\
              -I$(srctree)/include/linux/soc/mediatek
+#ifdef OPLUS_ARCH_EXTEND
+ccflags-y += -I$(srctree)/drivers/misc/oplus/
+#endif
 
 ifeq ($(CONFIG_MTK_ION), y)
 subdir-ccflags-y += -I$(srctree)/drivers/staging/android/mtk_ion \

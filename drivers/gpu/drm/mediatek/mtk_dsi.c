@@ -1278,14 +1278,14 @@ static void mtk_dsi_ps_control_vact(struct mtk_dsi *dsi)
 		}
 		size = ((height / line_back_to_LP) << 16) + (width * line_back_to_LP);
 	} else {
-		ps_wc = dsc_params->chunk_size;
+		ps_wc = (((dsc_params->chunk_size + 2) / 3) * 3);
 		if (dsc_params->slice_mode == 1)
 			ps_wc *= 2;
 
 		SET_VAL_MASK(value, mask, ps_wc, DSI_PS_WC);
 		SET_VAL_MASK(value, mask, 5, DSI_PS_SEL);
 
-		size = (height << 16) + ((ps_wc + 2) / 3);
+		size = (height << 16) + (ps_wc / 3);
 	}
 
 	writel(height / line_back_to_LP, dsi->regs + DSI_VACT_NL);
@@ -3341,7 +3341,6 @@ static int mtk_dsi_stop_vdo_mode(struct mtk_dsi *dsi, void *handle)
 #ifdef CONFIG_MTK_MT6382_BDG
 	unsigned char stopdsi[] = {0x00, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00}; //ID 0x00
 	unsigned char setcmd[] = {0x14, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00}; //ID 0x14
-	unsigned char setrxcmd[] = {0x70, 0x31, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00}; //ID 0x70
 	unsigned char sw_reset0[] = {0x10, 0x10, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00};
 	unsigned char sw_reset1[] = {0x10, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
 #endif
@@ -3395,7 +3394,6 @@ static int mtk_dsi_stop_vdo_mode(struct mtk_dsi *dsi, void *handle)
 	mipi_dsi_write_6382(dsi, handle, sw_reset0, 8);
 	mipi_dsi_write_6382(dsi, handle, sw_reset1, 8);
 	mipi_dsi_write_6382(dsi, handle, setcmd, 8);
-	mipi_dsi_write_6382(dsi, handle, setrxcmd, 8);
 #endif
 
 	if (need_create_hnd) {
@@ -3413,10 +3411,8 @@ int mtk_dsi_start_vdo_mode(struct mtk_ddp_comp *comp, void *handle)
 	unsigned char setvdo[] = {0x14, 0x10, 0x02, 0x00, 0x03, 0x00, 0x00, 0x00}; //ID 0x14
 	unsigned char stopdsi[] = {0x00, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00}; //ID 0x00
 	unsigned char startdsi[] = {0x00, 0x10, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00}; //ID 0x00
-	unsigned char setrxvdo[] = {0x70, 0x31, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00};
 
 	mipi_dsi_write_6382(dsi, handle, setvdo, 8);
-	mipi_dsi_write_6382(dsi, handle, setrxvdo, 8);
 	mipi_dsi_write_6382(dsi, handle, stopdsi, 8);
 	mipi_dsi_write_6382(dsi, handle, startdsi, 8);
 #endif
@@ -3942,19 +3938,6 @@ static void mtk_dsi_config_trigger(struct mtk_ddp_comp *comp,
 			       0x002c3909, ~0);
 		cmdq_pkt_write(handle, comp->cmdq_base, comp->regs_pa + DSI_CMDQ_SIZE,
 					1, ~0);
-
-		//dual_cmd_if mode need write dual_en to dsi1
-		if (dsi->slave_dsi && dsi->ext->params->lcm_cmd_if == MTK_PANEL_DUAL_PORT) {
-			cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
-						dsi->slave_dsi->ddp_comp.regs_pa + DSI_CMDQ0,
-				       0x002c3909, ~0);
-			cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
-						dsi->slave_dsi->ddp_comp.regs_pa + DSI_CMDQ_SIZE,
-						1, ~0);
-			cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
-					dsi->slave_dsi->ddp_comp.regs_pa + DSI_CON_CTRL,
-					DSI_DUAL_EN, DSI_DUAL_EN);
-		}
 
 		cmdq_pkt_write(handle, comp->cmdq_base,
 			       comp->regs_pa + DSI_START, 0, ~0);
@@ -4718,14 +4701,7 @@ void mipi_dsi_dcs_write_gce(struct mtk_dsi *dsi, struct cmdq_pkt *handle,
 		mtk_dsi_poll_for_idle(dsi, handle);
 		mtk_dsi_cmdq_gce(dsi, handle, &msg);
 		if (dsi->slave_dsi) {
-			//dual_cmd_if mode need send to dsi1
-			if (dsi->ext->params->lcm_cmd_if == MTK_PANEL_DUAL_PORT) {
-				mtk_dsi_cmdq_gce(dsi->slave_dsi, handle, &msg);
-				cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
-					dsi->slave_dsi->ddp_comp.regs_pa + DSI_CON_CTRL,
-					DSI_DUAL_EN, DSI_DUAL_EN);
-			} else
-				cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
+			cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
 					dsi->slave_dsi->ddp_comp.regs_pa + DSI_CON_CTRL,
 					0x0, DSI_DUAL_EN);
 		}
@@ -4736,7 +4712,7 @@ void mipi_dsi_dcs_write_gce(struct mtk_dsi *dsi, struct cmdq_pkt *handle,
 
 		mtk_dsi_poll_for_idle(dsi, handle);
 
-		if (dsi->slave_dsi && dsi->ext->params->lcm_cmd_if != MTK_PANEL_DUAL_PORT) {
+		if (dsi->slave_dsi) {
 			cmdq_pkt_write(handle, dsi->slave_dsi->ddp_comp.cmdq_base,
 					dsi->slave_dsi->ddp_comp.regs_pa + DSI_CON_CTRL,
 					DSI_DUAL_EN, DSI_DUAL_EN);
@@ -5966,8 +5942,6 @@ static void mtk_dsi_cmd_timing_change(struct mtk_dsi *dsi,
 	while (dsi->clk_refcnt != 1)
 		mtk_dsi_ddp_unprepare(&dsi->ddp_comp);
 	mtk_dsi_enter_idle(dsi);
-	if (dsi->slave_dsi)
-		mtk_dsi_enter_idle(dsi->slave_dsi);
 
 	if (dsi->ext && dsi->ext->funcs &&
 		dsi->ext->funcs->ext_param_set)
@@ -5976,18 +5950,11 @@ static void mtk_dsi_cmd_timing_change(struct mtk_dsi *dsi,
 
 	/* Power on DSI */
 	mtk_dsi_leave_idle(dsi);
-	if (dsi->slave_dsi)
-		mtk_dsi_leave_idle(dsi->slave_dsi);
 	while (dsi->clk_refcnt != clk_cnt)
 		mtk_dsi_ddp_prepare(&dsi->ddp_comp);
 
 	mtk_dsi_set_mode(dsi);
 	mtk_dsi_clk_hs_mode(dsi, 1);
-
-	if (dsi->slave_dsi) {
-		mtk_dsi_set_mode(dsi->slave_dsi);
-		mtk_dsi_clk_hs_mode(dsi->slave_dsi, 1);
-	}
 	mtk_dsi_set_mmclk_by_datarate(dsi, mtk_crtc, 1);
 skip_change_mipi:
 	/*	send lcm cmd after DSI power on if needed */

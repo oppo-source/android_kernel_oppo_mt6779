@@ -271,7 +271,7 @@ static int iproc_msi_irq_domain_alloc(struct irq_domain *domain,
 				    NULL, NULL);
 	}
 
-	return 0;
+	return hwirq;
 }
 
 static void iproc_msi_irq_domain_free(struct irq_domain *domain,

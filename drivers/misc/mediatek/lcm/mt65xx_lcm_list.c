@@ -1166,10 +1166,6 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&ili9881h_hdp_dsi_vdo_ilitek_rt5081_19_9_90hz_lcm_drv,
 #endif
 
-#if defined(ILI9881C_HD_DSI_VDO_ILITEK_NT50358)
-	&ili9881c_hd_dsi_vdo_ilitek_nt50358_lcm_drv,
-#endif
-
 #if defined(HX83112B_FHDP_DSI_CMD_AUO_RT4801)
 	&hx83112b_fhdp_dsi_cmd_auo_rt4801_lcm_drv,
 #endif
@@ -1189,23 +1185,9 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 #if defined(HX83112B_FHDP_DSI_VDO_AUO_RT4801)
 	&hx83112b_fhdp_dsi_vdo_auo_rt4801_lcm_drv,
 #endif
-
 #if defined(HX83112B_FHDP_DSI_CMD_AUO_RT5081)
 	&hx83112b_fhdp_dsi_cmd_auo_rt5081_lcm_drv,
 #endif
-
-#if defined(HX83112B_FHDP_DSI_VDO_AUO_RT5081)
-	&hx83112b_fhdp_dsi_vdo_auo_rt5081_lcm_drv,
-#endif
-
-#if defined(HX83112B_FHDP_DSI_CMD_AUO_RT5081_HDP)
-	&hx83112b_fhdp_dsi_cmd_auo_rt5081_hdp_lcm_drv,
-#endif
-
-#if defined(HX83112B_FHDP_DSI_VDO_AUO_RT5081_HDP)
-	&hx83112b_fhdp_dsi_vdo_auo_rt5081_hdp_lcm_drv,
-#endif
-
 #if defined(SOFEG01_FHDPLUS_DSI_CMD_SAMSUNG)
 	&sofeg01_fhdplus_dsi_cmd_samsung_lcm_drv,
 #endif
@@ -1222,6 +1204,36 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&oppo_tianma_td4310_fhdp_dsi_vdo_rt5081_lcm_drv,
 #endif
 
+/* #ifdef OPLUS_BUG_STABILITY */
+#if defined(OPPO20291_SAMSUNG_AMS643XY01_1080P_DSI_VDO)
+	&oppo20291_samsung_ams643xy01_1080p_dsi_vdo_lcm_drv,
+#endif
+
+#if defined(OPPO19537_SAMSUNG_AMS643XF01_1080P_DSI_CMD)
+	&oppo19537_samsung_ams643xf01_1080p_dsi_cmd_lcm_drv,
+#endif
+
+#if defined(OPPO19357_SAMSUNG_AMS644VA04_1080P_DSI_CMD)
+	&oppo19357_samsung_ams644va04_1080p_dsi_cmd_lcm_drv,
+#endif
+
+#if defined(OPPO19551_SAMSUNG_AMS644VK01_1080P_DSI_CMD)
+	&oppo19551_samsung_ams644vk01_1080p_dsi_cmd_lcm_drv,
+#endif
+
+#if defined(OPLUS21331_TD4160_INX_HDP_DSI_VDO_LCM)
+	&oplus21331_td4160_inx_hdp_dsi_vdo_lcm_drv,
+#endif
+
+#if defined(OPLUS21331_ILI9883C_HLT_HDP_DSI_VDO_LCM)
+	&oplus21331_ili9883c_hlt_hdp_dsi_vdo_lcm_drv,
+#endif
+
+#if defined(OPLUS21331_ILI9883C_BOE_HDP_DSI_VDO_LCM)
+	&oplus21331_ili9883c_boe_hdp_dsi_vdo_lcm_drv,
+#endif
+
+/* #endif */ /* OPLUS_BUG_STABILITY */
 #if defined(NT36672C_FHDP_DSI_VDO_60HZ_SHENCHAO)
 	&nt36672c_fhdp_dsi_vdo_60hz_shenchao_lcm_drv,
 #endif
@@ -1232,19 +1244,6 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 
 #if defined(NT36672C_FHDP_DSI_VDO_90HZ_SHENCHAO_6382)
 	&nt36672c_fhdp_dsi_vdo_90hz_shenchao_6382_lcm_drv,
-#endif
-
-#if defined(TD4320_FHDP_DSI_VDO_AUO_RT5081)
-	&td4320_fhdp_dsi_vdo_auo_rt5081_lcm_drv,
-#endif
-
-/*6768 OTM*/
-#if defined(OTM1911A_FHDP_DSI_VDO_TRULY_RT5081)
-	&otm1911a_fhdp_dsi_vdo_truly_rt5081_lcm_drv,
-#endif
-
-#if defined(OTM1911A_FHDP_DSI_VDO_TRULY_RT5081_HDP)
-	&otm1911a_fhdp_dsi_vdo_truly_rt5081_hdp_lcm_drv,
 #endif
 };
 

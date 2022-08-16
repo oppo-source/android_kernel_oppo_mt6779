@@ -653,9 +653,11 @@ static int get_hw_btsnrpa_temp(void)
 	}
 
 #ifdef APPLY_PRECISE_BTS_TEMP
-	ret = val * 100;
+	/*val * 1500 * 100 / 4096 = (val * 9375) >>  8 */
+	ret = (val * 9375) >> 8;
 #else
-	ret = val;
+	/*val * 1500 / 4096*/
+	ret = (val * 1500) >> 12;
 #endif
 #else
 
@@ -721,7 +723,7 @@ static int get_hw_btsnrpa_temp(void)
 #if defined(APPLY_AUXADC_CALI_DATA)
 #else
 #ifdef APPLY_PRECISE_BTS_TEMP
-	ret = (val * 9375) >>  8;
+	ret = ret * 9375 >> 8;
 #else
 	ret = ret * 1500 / 4096;
 #endif

@@ -4180,7 +4180,7 @@ struct clk *mt_clk_register_power_gate(const char *name,
 {
 	struct mt_power_gate *pg;
 	struct clk *clk;
-	struct clk_init_data init = {};
+	struct clk_init_data init;
 
 	pg = kzalloc(sizeof(*pg), GFP_KERNEL);
 	if (!pg)
@@ -4448,7 +4448,7 @@ static int __init clk_mt6833_scpsys_init(void)
 {
 	return platform_driver_register(&clk_mt6833_scpsys_drv);
 }
-arch_initcall(clk_mt6833_scpsys_init);
+arch_initcall_sync(clk_mt6833_scpsys_init);
 
 /* for suspend LDVT only */
 void mtcmos_force_off(void)

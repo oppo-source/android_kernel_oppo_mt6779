@@ -11,7 +11,7 @@ int mtk_fstb_init(void);
 void fpsgo_comp2fstb_queue_time_update(
 	int pid, unsigned long long bufID, int frame_type,
 	unsigned long long ts,
-	int api, int hwui_flag);
+	int api);
 int fpsgo_comp2fstb_enq_end(int pid,
 	unsigned long long bufID, unsigned long long enq);
 int fpsgo_ctrl2fstb_gblock(int tid, int start);
@@ -47,10 +47,9 @@ void fpsgo_fbt2fstb_query_fps(int pid, unsigned long long bufID,
 void fpsgo_ctrl2fstb_dfrc_fps(int dfrc_fps);
 
 /* EARA */
-void eara2fstb_get_tfps(int max_cnt, int *is_camera, int *pid, unsigned long long *buf_id,
-				int *tfps, int *rftp, int *hwui, char name[][16]);
-void eara2fstb_tfps_mdiff(int pid, unsigned long long buf_id, int diff,
-				int tfps);
+void eara2fstb_get_tfps(int max_cnt, int *pid, unsigned long long *buf_id,
+				int *tfps);
+void eara2fstb_tfps_mdiff(int pid, unsigned long long buf_id, int diff);
 #else
 static inline int is_fstb_enable(void) { return 0; }
 static inline int fpsgo_ctrl2fstb_switch_fstb(int en) { return 0; }
@@ -84,7 +83,8 @@ static void fpsgo_ctrl2fstb_dfrc_fps(int dfrc_fps) { }
 static inline void eara2fstb_get_tfps(int max_cnt, int *pid,
 		unsigned long long *buf_id, int *tfps) { }
 static inline void eara2fstb_tfps_mdiff(int pid, unsigned long long buf_id,
-		int diff, int tfps) { }
+		int diff) { }
+
 #endif
 
 #endif

@@ -20,4 +20,5 @@
 #define MNOC_APU_PWR_CHK (1)
 
 #define APU_QOS_IPUIF_ADJUST
+
 #endif

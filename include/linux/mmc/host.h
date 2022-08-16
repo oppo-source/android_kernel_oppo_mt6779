@@ -507,6 +507,10 @@ struct mmc_host {
 	bool			sdio_irq_pending;
 	atomic_t		sdio_irq_thread_abort;
 
+#ifdef OPLUS_FEATURE_MMC_DRIVER
+	bool                    card_stuck_in_programing_status;
+#endif
+
 	mmc_pm_flag_t		pm_flags;	/* requested pm features */
 
 	struct led_trigger	*led;		/* activity led */

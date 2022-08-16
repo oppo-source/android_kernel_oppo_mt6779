@@ -20,7 +20,6 @@ ccflags-y += \
 ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT), y)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/v2/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/mt6781
-ccflags-y += -DUSE_SSPM_VER_V2
 endif
 
 obj-y += mtk_cpufreq_platform.o

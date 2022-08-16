@@ -303,10 +303,8 @@ int battery_get_boot_mode(void)
 								"atag,boot", NULL);
 			if (!tag)
 				bm_err("%s: failed to get atag,boot\n", __func__);
-			else {
+			else
 				boot_mode = tag->bootmode;
-				gm.boot_mode = tag->bootmode;
-			}
 		}
 	}
 	bm_debug("%s: boot mode=%d\n", __func__, boot_mode);
@@ -475,14 +473,6 @@ static int battery_get_property(struct power_supply *psy,
 		val->intval = gm.bat_cycle;
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
-		/* 1 = META_BOOT, 4 = FACTORY_BOOT 5=ADVMETA_BOOT */
-		/* 6= ATE_factory_boot */
-		if (gm.boot_mode == 1 || gm.boot_mode == 4
-			|| gm.boot_mode == 5 || gm.boot_mode == 6) {
-			val->intval = 75;
-			break;
-		}
-
 		if (gm.fixed_uisoc != 0xffff)
 			val->intval = gm.fixed_uisoc;
 		else
@@ -3827,27 +3817,18 @@ static ssize_t store_BAT_HEALTH(
 	char *s = buf_str, *pch;
 	/* char *ori = buf_str; */
 	int chr_size = 0;
-	int i = 0, j = 0, count = 0, value[50];
+	int i = 0, count = 0, value[50];
 
 
 	bm_err("%s, size =%d, str=%s\n", __func__, size, buf);
 
-	if (size < 90 || size > 350) {
-		bm_err("%s error, size mismatch\n", __func__);
-		return -1;
-	} else {
-		for (i = 0; i < strlen(buf); i++) {
-			if (buf[i] == ',')
-				j++;
-		}
-		if (j != 46) {
-			bm_err("%s error, invalid input\n", __func__);
-			return -1;
-		}
-	}
-
 	strncpy(buf_str, buf, size);
 	/* bm_err("%s, copy str=%s\n", __func__, buf_str); */
+
+	if (size > 350) {
+		bm_err("%s error, size mismatch\n", __func__);
+		return -1;
+	}
 
 	if (buf != NULL && size != 0) {
 

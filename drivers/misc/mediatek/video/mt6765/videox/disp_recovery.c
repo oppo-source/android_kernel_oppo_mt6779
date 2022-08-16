@@ -722,7 +722,13 @@ int primary_display_esd_recovery(void)
 	DISPDBG("[POWER]lcm suspend[begin]\n");
 	/*after dsi_stop, we should enable the dsi basic irq.*/
 	dsi_basic_irq_enable(DISP_MODULE_DSI0, NULL);
+#ifdef OPLUS_BUG_STABILITY
+	disp_lcm_set_esd_flag(primary_get_lcm(),1);
+#endif
 	disp_lcm_suspend(primary_get_lcm());
+#ifdef OPLUS_BUG_STABILITY
+	disp_lcm_set_esd_flag(primary_get_lcm(),0);
+#endif
 	DISPCHECK("[POWER]lcm suspend[end]\n");
 
 	mmprofile_log_ex(mmp_r, MMPROFILE_FLAG_PULSE, 0, 7);

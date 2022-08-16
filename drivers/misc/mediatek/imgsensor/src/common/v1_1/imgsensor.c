@@ -52,11 +52,18 @@
 #include "imgsensor_ca.h"
 #endif
 
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+#include <soc/oplus/system/oppo_project.h>
+#endif
+
 static DEFINE_MUTEX(gimgsensor_mutex);
 static DEFINE_MUTEX(gimgsensor_open_mutex);
 
 struct IMGSENSOR gimgsensor;
 MUINT32 last_id;
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+//extern void oppo_chg_set_camera_on(bool val);
+#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 
 /******************************************************************************
  * Profiling
@@ -90,6 +97,62 @@ void IMGSENSOR_PROFILE(struct timeval *ptv, char *tag)
 }
 #endif
 
+#ifdef OPLUS_FEATURE_CAMERA_COMMON
+/* Add by LiuBin for register device info at 20160616 */
+#include <soc/oplus/device_info.h>
+#define DEVICE_MANUFACUTRE_NA		    "None"
+#define DEVICE_MANUFACUTRE_SUNNY        "Sunny"
+#define DEVICE_MANUFACUTRE_TRULY        "Truly"
+#define DEVICE_MANUFACUTRE_SEMCO        "Semco"
+#define DEVICE_MANUFACUTRE_LITEON       "Liteon"
+#define DEVICE_MANUFACUTRE_QTECH        "Qtech"
+#define DEVICE_MANUFACUTRE_OFILM        "Ofilm"
+#define DEVICE_MANUFACUTRE_SHINE        "Shine"
+
+#define IMGSENSOR_MODULE_ID_SUNNY       0x01
+#define IMGSENSOR_MODULE_ID_TRULY       0x02
+#define IMGSENSOR_MODULE_ID_SEMCO       0x03
+#define IMGSENSOR_MODULE_ID_LITEON      0x04
+#define IMGSENSOR_MODULE_ID_QTECH       0x05
+#define IMGSENSOR_MODULE_ID_OFILM       0x06
+#define IMGSENSOR_MODULE_ID_SHINE       0x07
+void register_imgsensor_deviceinfo(char *name, char *version, u8 module_id)
+{
+    char *manufacture;
+    if (name == NULL || version == NULL)
+    {
+        pr_info("name or version is NULL");
+        return;
+    }
+    switch (module_id)
+    {
+        case IMGSENSOR_MODULE_ID_SUNNY:  /* Sunny */
+            manufacture = DEVICE_MANUFACUTRE_SUNNY;
+            break;
+        case IMGSENSOR_MODULE_ID_TRULY:  /* Truly */
+            manufacture = DEVICE_MANUFACUTRE_TRULY;
+            break;
+        case IMGSENSOR_MODULE_ID_SEMCO:  /* Semco */
+            manufacture = DEVICE_MANUFACUTRE_SEMCO;
+            break;
+        case IMGSENSOR_MODULE_ID_LITEON:  /* Lite-ON */
+            manufacture = DEVICE_MANUFACUTRE_LITEON;
+            break;
+        case IMGSENSOR_MODULE_ID_QTECH:  /* Q-Tech */
+            manufacture = DEVICE_MANUFACUTRE_QTECH;
+            break;
+        case IMGSENSOR_MODULE_ID_OFILM:  /* O-Film */
+            manufacture = DEVICE_MANUFACUTRE_OFILM;
+            break;
+        case IMGSENSOR_MODULE_ID_SHINE:  /* Shine */
+            manufacture = DEVICE_MANUFACUTRE_SHINE;
+            break;
+        default:
+            manufacture = DEVICE_MANUFACUTRE_NA;
+    }
+    register_device_proc(name, version, manufacture);
+}
+#endif
 /******************************************************************************
  * sensor function adapter
  ******************************************************************************/
@@ -117,11 +180,11 @@ static void imgsensor_mutex_lock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 	if (psensor_inst->status.arch) {
 		mutex_lock(&psensor_inst->sensor_mutex);
 	} else {
-#ifdef SENSOR_PARALLEISM
-		mutex_lock(&psensor_inst->sensor_mutex);
-#else
+		#ifndef OPLUS_FEATURE_CAMERA_COMMON
 		mutex_lock(&gimgsensor_mutex);
-#endif
+		#else
+		mutex_lock(&psensor_inst->sensor_mutex);
+		#endif
 		imgsensor_i2c_set_device(&psensor_inst->i2c_cfg);
 	}
 #else
@@ -134,14 +197,15 @@ static void imgsensor_mutex_unlock(struct IMGSENSOR_SENSOR_INST *psensor_inst)
 #ifdef IMGSENSOR_LEGACY_COMPAT
 	if (psensor_inst->status.arch)
 		mutex_unlock(&psensor_inst->sensor_mutex);
+	#ifndef OPLUS_FEATURE_CAMERA_COMMON
+	else
+		mutex_unlock(&gimgsensor_mutex);
+	#else
 	else {
-#ifdef SENSOR_PARALLEISM
 		imgsensor_i2c_set_device(NULL);
 		mutex_unlock(&psensor_inst->sensor_mutex);
-#else
-		mutex_unlock(&gimgsensor_mutex);
-#endif
 	}
+	#endif
 #else
 	mutex_lock(&psensor_inst->sensor_mutex);
 #endif
@@ -209,6 +273,12 @@ MINT32 imgsensor_sensor_open(struct IMGSENSOR_SENSOR *psensor)
 			PK_PR_ERR("SensorOpen fail");
 		} else {
 			psensor_inst->state = IMGSENSOR_STATE_OPEN;
+			#ifdef OPLUS_FEATURE_CAMERA_COMMON
+			if (is_project(19536)||is_project(19537)||is_project(19538)||is_project(19539)
+			    || is_project(19541)){
+				//oppo_chg_set_camera_on(1);
+			}
+	                #endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 		}
 
 #ifdef IMGSENSOR_OC_ENABLE
@@ -475,6 +545,12 @@ MINT32 imgsensor_sensor_close(struct IMGSENSOR_SENSOR *psensor)
 				IMGSENSOR_HW_POWER_STATUS_OFF);
 
 			psensor_inst->state = IMGSENSOR_STATE_CLOSE;
+			#ifdef OPLUS_FEATURE_CAMERA_COMMON
+			if (is_project(19536)||is_project(19537)||is_project(19538)||is_project(19539)
+			    || is_project(19541)){
+			    //oppo_chg_set_camera_on(0);
+		        }
+		        #endif /*OPLUS_FEATURE_CAMERA_COMMON*/
 		}
 
 		imgsensor_mutex_unlock(psensor_inst);
@@ -496,7 +572,24 @@ static void imgsensor_init_sensor_list(void)
 	const char *penable_sensor;
 	struct device_node *of_node
 		= of_find_compatible_node(NULL, NULL, "mediatek,imgsensor");
-
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	if (is_project(19550) || is_project(19551) || is_project(19553)
+		|| is_project(19556)
+		|| is_project(19357) || is_project(19354)
+		|| is_project(19358) || is_project(19359)) {
+		psensor_list =  gimgsensor_sensor_list_P90Q;
+	}
+	if (is_project(19537) || is_project(19538) ||
+		is_project(19536) || is_project(19539) ||
+		is_project(19541)) {
+		psensor_list =  gimgsensor_sensor_list_19537;
+	}
+	if (is_project(20291) || is_project(20292) ||
+		is_project(20293) || is_project(20294) ||
+		is_project(20295)) {
+		psensor_list =  gimgsensor_sensor_list_20291;
+	}
+	#endif
 	ret = of_property_read_string(of_node, "cust-sensor", &penable_sensor);
 	if (ret < 0) {
 		PK_DBG("Property cust-sensor not defined\n");
@@ -569,9 +662,32 @@ int imgsensor_set_driver(struct IMGSENSOR_SENSOR *psensor)
 	struct IMGSENSOR_SENSOR_INST *psensor_inst = &psensor->inst;
 
 	imgsensor_mutex_init(psensor_inst);
+	#ifdef OPLUS_FEATURE_CAMERA_COMMON
+	if (is_project(19536) || is_project(19537) ||
+		is_project(19538) || is_project(19539) ||
+		is_project(19541)) {
+		imgsensor_i2c_init(&psensor_inst->i2c_cfg,
+			imgsensor_custom_config_19537[psensor_inst->sensor_idx].i2c_dev);
+	} else if (is_project(19550) || is_project(19551) || is_project(19553)
+		|| is_project(19556)) {
+		imgsensor_i2c_init(&psensor_inst->i2c_cfg,
+			imgsensor_custom_config_P90Q[psensor_inst->sensor_idx].i2c_dev);
+	} else if (is_project(19357) || is_project(19354) || is_project(19358) || is_project(19359)){
+		imgsensor_i2c_init(&psensor_inst->i2c_cfg,
+			imgsensor_custom_config_19357[psensor_inst->sensor_idx].i2c_dev);
+	} else if (is_project(20291) || is_project(20292) ||
+		is_project(20293) || is_project(20294) ||
+		is_project(20295)){
+		imgsensor_i2c_init(&psensor_inst->i2c_cfg,
+			imgsensor_custom_config_20291[psensor_inst->sensor_idx].i2c_dev);
+	} else {
+		imgsensor_i2c_init(&psensor_inst->i2c_cfg,
+			imgsensor_custom_config[psensor_inst->sensor_idx].i2c_dev);
+	}
+	#else
 	imgsensor_i2c_init(&psensor_inst->i2c_cfg,
-	imgsensor_custom_config[
-	(unsigned int)psensor_inst->sensor_idx].i2c_dev);
+		imgsensor_custom_config[(unsigned int)psensor_inst->sensor_idx].i2c_dev);
+	#endif
 	imgsensor_i2c_filter_msg(&psensor_inst->i2c_cfg, true);
 
 	while (i < MAX_NUM_OF_SUPPORT_SENSOR && pimgsensor->psensor_list[i]) {
@@ -931,7 +1047,7 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 {
 	struct ACDK_SENSOR_FEATURECONTROL_STRUCT *pFeatureCtrl;
 	struct IMGSENSOR_SENSOR *psensor;
-	unsigned int FeatureParaLen, Patternmode = 0;
+	unsigned int FeatureParaLen = 0;
 	void *pFeaturePara = NULL;
 	struct ACDK_KD_SENSOR_SYNC_STRUCT *pSensorSyncInfo = NULL;
 	signed int ret = 0;
@@ -1077,7 +1193,7 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 		struct IMGSENSOR_SENSOR_LIST *psensor_list =
 			(struct IMGSENSOR_SENSOR_LIST *)pFeaturePara;
 
-		if (FeatureParaLen < 1 * sizeof(struct IMGSENSOR_SENSOR_LIST)) {
+		if (FeatureParaLen < 4 * sizeof(unsigned long long)) {
 			PK_DBG("FeatureParaLen is too small %d\n", FeatureParaLen);
 			kfree(pFeaturePara);
 			return -EINVAL;
@@ -1104,12 +1220,6 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 		/* keep the information to wait Vsync synchronize */
 		pSensorSyncInfo =
 			(struct ACDK_KD_SENSOR_SYNC_STRUCT *) pFeaturePara;
-
-		if (FeatureParaLen < 1 * sizeof(struct ACDK_KD_SENSOR_SYNC_STRUCT)) {
-			PK_DBG("FeatureParaLen is too small %d\n", FeatureParaLen);
-			kfree(pFeaturePara);
-			return -EINVAL;
-		}
 
 		FeatureParaLen = 2;
 
@@ -1859,12 +1969,6 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 			kal_uint32 index = *(pFeaturePara_64 + 2);
 			kal_uint8 *pReg = NULL;
 
-			if (FeatureParaLen < 3 * sizeof(unsigned long long)) {
-				PK_DBG("FeatureParaLen is too small %d\n", FeatureParaLen);
-				kfree(pFeaturePara);
-				return -EINVAL;
-			}
-
 			/* buffer size exam */
 			if ((sizeof(kal_uint8) * u4RegLen) >
 			    IMGSENSOR_FEATURE_PARA_LEN_MAX ||
@@ -1912,22 +2016,14 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 					(unsigned int *)&FeatureParaLen);
 		set_sensor_streaming_state((int)psensor->inst.sensor_idx, 0);
 		break;
-#endif
 	case SENSOR_FEATURE_SET_STREAMING_RESUME:
-		/*Close testPattern before streaming*/
-		imgsensor_sensor_feature_control(psensor,
-			SENSOR_FEATURE_SET_TEST_PATTERN,
-			(unsigned char *)&Patternmode,
-			(unsigned int *)&FeatureParaLen);
 		ret = imgsensor_sensor_feature_control(psensor,
 					pFeatureCtrl->FeatureId,
 					(unsigned char *)pFeaturePara,
 					(unsigned int *)&FeatureParaLen);
-#ifdef SENINF_N3D_SUPPORT
 		set_sensor_streaming_state((int)psensor->inst.sensor_idx, 1);
-#endif
 		break;
-
+#endif
 	case SENSOR_FEATURE_SET_TEST_PATTERN:
 		{
 			pr_debug("SENSOR_FEATURE_SET_TEST_PATTERN");
@@ -1959,8 +2055,8 @@ static inline int adopt_CAMERA_HW_FeatureControl(void *pBuf)
 				}
 				//pr_debug("%x %x %x %x",pData->COLOR_R,pData->COLOR_Gr,
 				//pData->COLOR_Gb,pData->COLOR_B);
-				if (pFeaturePara_64 != NULL)
-					*(pFeaturePara_64 + 1) = (uintptr_t) pData;
+				memcpy((void *)(pFeaturePara_64 + 1), (void *)pData,
+					sizeof(struct SET_SENSOR_PATTERN_SOLID_COLOR));
 			}
 			ret = imgsensor_sensor_feature_control(psensor,
 					pFeatureCtrl->FeatureId,

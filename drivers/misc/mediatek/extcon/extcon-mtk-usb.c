@@ -26,8 +26,8 @@
 #include "tcpm.h"
 #endif
 
-#ifdef CONFIG_MTK_USB_TYPEC_U3_MUX
-#include "mux_switch.h"
+#if (defined OPLUS_FEATURE_CHG_BASIC) && (defined CONFIG_OPLUS_CHARGER_MTK6765S)
+extern int set_chr_enable_otg(unsigned int enable);
 #endif
 
 static struct mtk_extcon_info *g_extcon;
@@ -115,22 +115,6 @@ static int mtk_usb_extcon_set_role(struct mtk_extcon_info *extcon,
 	return 0;
 }
 
-#if !defined(CONFIG_USB_MTK_HDRC)
-void mt_usb_connect()
-{
-	/* if (g_extcon)
-		mtk_usb_extcon_set_role(extcon, DUAL_PROP_DR_DEVICE); */
-}
-EXPORT_SYMBOL(mt_usb_connect);
-
-void mt_usb_disconnect()
-{
-	/* if (g_extcon)
-		mtk_usb_extcon_set_role(extcon, DUAL_PROP_DR_NONE); */
-}
-EXPORT_SYMBOL(mt_usb_disconnect);
-#endif
-
 static int mtk_usb_extcon_psy_notifier(struct notifier_block *nb,
 				unsigned long event, void *data)
 {
@@ -195,7 +179,11 @@ static int mtk_usb_extcon_psy_init(struct mtk_extcon_info *extcon)
 	union power_supply_propval ival;
 	union power_supply_propval tval;
 
+#ifdef CONFIG_CHARGER_BQ2560X
+	extcon->usb_psy = power_supply_get_by_name("bq2560x");
+#else
 	extcon->usb_psy = devm_power_supply_get_by_phandle(dev, "charger");
+#endif
 	if (IS_ERR_OR_NULL(extcon->usb_psy)) {
 		dev_err(dev, "fail to get usb_psy\n");
 		extcon->usb_psy = NULL;
@@ -353,26 +341,16 @@ static int mtk_extcon_tcpc_notifier(struct notifier_block *nb,
 		dev_info(dev, "source vbus = %dmv\n",
 				 noti->vbus_state.mv);
 		vbus_on = (noti->vbus_state.mv) ? true : false;
+#if (defined OPLUS_FEATURE_CHG_BASIC) && (defined CONFIG_OPLUS_CHARGER_MTK6765S)
+		set_chr_enable_otg(vbus_on);
+#else
 		mtk_usb_extcon_set_vbus(extcon, vbus_on);
+#endif
 		break;
 	case TCP_NOTIFY_TYPEC_STATE:
 		dev_info(dev, "old_state=%d, new_state=%d\n",
 				noti->typec_state.old_state,
 				noti->typec_state.new_state);
-
-#ifdef CONFIG_MTK_USB_TYPEC_U3_MUX
-		if ((noti->typec_state.new_state == TYPEC_ATTACHED_SRC ||
-			noti->typec_state.new_state == TYPEC_ATTACHED_SNK ||
-			noti->typec_state.new_state == TYPEC_ATTACHED_NORP_SRC ||
-			noti->typec_state.new_state == TYPEC_ATTACHED_CUSTOM_SRC)) {
-			if (noti->typec_state.polarity == 0)
-				usb3_switch_set(TYPEC_ORIENTATION_REVERSE);
-			else
-				usb3_switch_set(TYPEC_ORIENTATION_NORMAL);
-		} else if (noti->typec_state.new_state == TYPEC_UNATTACHED) {
-			usb3_switch_set(TYPEC_ORIENTATION_NONE);
-		}
-#endif
 		if (noti->typec_state.old_state == TYPEC_UNATTACHED &&
 			noti->typec_state.new_state == TYPEC_ATTACHED_SRC) {
 			dev_info(dev, "Type-C SRC plug in\n");
@@ -531,25 +509,14 @@ static void issue_connection_work(unsigned int dr)
 void mt_usb_connect_v1(void)
 {
 	pr_info("%s in mtk extcon\n", __func__);
-
-#ifdef CONFIG_TCPC_CLASS
-	/* check current role to avoid power role swap issue */
-	if (g_extcon && g_extcon->c_role == DUAL_PROP_DR_NONE)
-		issue_connection_work(DUAL_PROP_DR_DEVICE);
-#else
 	issue_connection_work(DUAL_PROP_DR_DEVICE);
-#endif
 }
 EXPORT_SYMBOL_GPL(mt_usb_connect_v1);
 
 void mt_usb_disconnect_v1(void)
 {
 	pr_info("%s  in mtk extcon\n", __func__);
-#ifdef CONFIG_TCPC_CLASS
-	/* disconnect by tcpc notifier */
-#else
 	issue_connection_work(DUAL_PROP_DR_NONE);
-#endif
 }
 EXPORT_SYMBOL_GPL(mt_usb_disconnect_v1);
 #endif //ADAPT_PSY_V1

@@ -30,11 +30,7 @@ ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpufreq
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/mt-plat
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/ged/include
-ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6885" "mt6873" "mt6853"))
-ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_bm_k414
-else
 ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_bm
-endif
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
 
 ccflags-$(CONFIG_DEBUG_FS) += -DCONFIG_DEBUG_FS
@@ -46,11 +42,7 @@ ccflags-$(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT) += -DCONFIG_MTK_GPU_COMMON_DVFS
 # Enable by specific Family-ID
 ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6885" "mt6873" "mt6853"))
 ccflags-y += -DMTK_GPU_BM_2
-
-ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6885" "mt6873"))
 ccflags-y += -DGPU_BM_PORTING
-endif
-
 $(info *GPU defined GPU BM QoS 2.0)
 endif
 
@@ -90,8 +82,7 @@ endif
 
 # Set default policy always_on
 #ccflags-y += -DMTK_POWER_POLICY_AO
-ifeq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6768"))
+
 ccflags-y += -DCONFIG_MTK_GPU_DEBUG
 ccflags-y += -DCONFIG_MTK_GPU_DEBUG_DFD
 ccflags-y += -DCONFIG_MTK_GPU_MEM_TRACK
-endif

@@ -247,6 +247,7 @@ static struct class *bat_cali_class;
 static int bat_cali_major;
 static dev_t bat_cali_devno;
 static struct cdev *bat_cali_cdev;
+struct mtk_gauge *g_gague;
 
 
 void __attribute__ ((weak))
@@ -2115,12 +2116,15 @@ static int boot_zcv_get(struct mtk_gauge *gauge_dev,
 	return 0;
 }
 
+
+#ifdef OPLUS_FEATURE_CHG_BASIC
 static int bat_temp_froze_en_set(struct mtk_gauge *gauge,
 	struct mtk_gauge_sysfs_field_info *attr, int val)
 {
 	/*NO need to do*/
 	return 0;
 }
+#endif
 
 static int initial_set(struct mtk_gauge *gauge,
 	struct mtk_gauge_sysfs_field_info *attr, int val)
@@ -2219,6 +2223,24 @@ static int rtc_ui_soc_set(struct mtk_gauge *gauge,
 	return 1;
 }
 
+#ifdef OPLUS_FEATURE_CHG_BASIC
+int oplus_get_rtc_ui_soc(void)
+{
+	int rtc_ui_soc;
+	rtc_ui_soc_get(g_gague, NULL, &rtc_ui_soc);
+	bm_notice("[%s] oplus_get_rtc_ui_soc = %d\n", __func__, rtc_ui_soc);
+
+	return rtc_ui_soc;
+
+}
+
+int oplus_set_rtc_ui_soc(int value)
+{
+	rtc_ui_soc_set(g_gague, NULL, value);
+	bm_notice("[%s] oplus_set_rtc_ui_soc = %d\n", __func__, value);
+	return value;
+}
+#endif
 
 static int gauge_initialized_get(struct mtk_gauge *gauge,
 	struct mtk_gauge_sysfs_field_info *attr, int *val)
@@ -2809,8 +2831,10 @@ static struct mtk_gauge_sysfs_field_info mt6357_sysfs_field_tbl[] = {
 		vbat2_detect_time, GAUGE_PROP_VBAT2_DETECT_TIME),
 	GAUGE_SYSFS_INFO_FIELD_RW(
 		vbat2_detect_counter, GAUGE_PROP_VBAT2_DETECT_COUNTER),
+#ifdef OPLUS_FEATURE_CHG_BASIC
 	GAUGE_SYSFS_FIELD_WO(
 		bat_temp_froze_en_set, GAUGE_PROP_BAT_TEMP_FROZE_EN),
+#endif
 };
 
 static struct attribute *

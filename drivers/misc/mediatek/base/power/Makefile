@@ -9,9 +9,10 @@ obj-$(CONFIG_MACH_MT6833) += ptp3_v1/
 obj-$(CONFIG_MACH_MT6761) += $(subst ",,$(CONFIG_MTK_PLATFORM))/
 
 endif
+
 obj-$(CONFIG_MACH_MT8173) += $(subst ",,$(CONFIG_MTK_PLATFORM))/
 obj-$(CONFIG_MACH_MT6779) += drcc_v1/
-#obj-$(CONFIG_MACH_MT6768) += drcc_v1/
+obj-$(CONFIG_MACH_MT6768) += drcc_v1/
 obj-$(CONFIG_MACH_MT6765) += spm/
 obj-$(CONFIG_MACH_MT6761) += spm/
 obj-$(CONFIG_MACH_MT6768) += spm/
@@ -34,7 +35,6 @@ endif
 obj-$(CONFIG_MTK_UNIFY_POWER) += upower_v2/
 obj-$(CONFIG_MACH_MT6761) += ppm_v3/
 obj-$(CONFIG_MACH_MT6765) += ppm_v3/
-obj-$(CONFIG_MACH_MT6771) += ppm_v3/
 obj-$(CONFIG_MACH_MT6779) += ppm_v3/
 obj-$(CONFIG_MACH_MT6768) += ppm_v3/
 obj-$(CONFIG_MACH_MT6739) += ppm_v3/
@@ -51,7 +51,6 @@ obj-$(CONFIG_MACH_MT6739) += clkbuf_v1/
 obj-$(CONFIG_MACH_MT6739) += mcdi/
 obj-$(CONFIG_MACH_MT6739) += ppm_v3/
 obj-$(CONFIG_MACH_MT6739) += spm_v4/
-obj-$(CONFIG_MACH_MT6771) += spm_v4/
 obj-$(CONFIG_MACH_MT6739) += vcorefs_v3/
 obj-$(CONFIG_MTK_SWPM) += swpm_v1/
 obj-$(CONFIG_MACH_MT6779) += dcm_v1/
@@ -104,14 +103,12 @@ obj-$(CONFIG_MACH_MT6765) += cpuidle_v3/
 obj-$(CONFIG_MACH_MT6761) += cpuidle_v3/
 obj-$(CONFIG_MACH_MT6779) += cpuidle_v3/
 #obj-$(CONFIG_MACH_MT6739) += cpuhotplug/
-obj-$(CONFIG_MACH_MT6771) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6779) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6768) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6781) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6877) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6833) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6893) += cpuhotplug/
-obj-$(CONFIG_MACH_MT6739) += cpuhotplug/
 obj-$(CONFIG_MACH_MT6739) += power_gs_v1/
 obj-$(CONFIG_MACH_MT6765) += power_gs_v1/
 obj-$(CONFIG_MACH_MT6768) += power_gs_v1/

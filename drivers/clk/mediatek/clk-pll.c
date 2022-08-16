@@ -540,16 +540,6 @@ static void mtk_pll_unprepare(struct clk_hw *hw)
 	writel(r, pll->pwr_addr);
 }
 #endif
-
-static void mtk_pll_unprepare_unused(struct clk_hw *hw)
-{
-	const char *c_n = clk_hw_get_name(hw);
-
-	pr_notice("disable_unused - %s\n", c_n);
-
-	mtk_pll_unprepare(hw);
-}
-
 #if (defined(CONFIG_MACH_MT6779) \
     || defined(CONFIG_MACH_MT6739) \
     || defined(CONFIG_MACH_MT6768) \
@@ -562,7 +552,6 @@ static const struct clk_ops mtk_pll_ops = {
 	.recalc_rate	= mtk_pll_recalc_rate,
 	.round_rate	= mtk_pll_round_rate,
 	.set_rate	= mtk_pll_set_rate,
-	.disable_unused	= mtk_pll_unprepare_unused,
 };
 #else
 static const struct clk_ops mtk_pll_ops = {
@@ -572,7 +561,6 @@ static const struct clk_ops mtk_pll_ops = {
 	.recalc_rate	= mtk_pll_recalc_rate,
 	.round_rate	= mtk_pll_round_rate,
 	.set_rate	= mtk_pll_set_rate,
-	.unprepare_unused	= mtk_pll_unprepare_unused,
 };
 #endif
 

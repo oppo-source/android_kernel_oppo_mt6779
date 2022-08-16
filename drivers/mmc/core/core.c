@@ -225,6 +225,15 @@ static void __mmc_start_request(struct mmc_host *host, struct mmc_request *mrq)
 {
 	int err;
 
+#ifdef OPLUS_FEATURE_MMC_DRIVER
+	if (host->card_stuck_in_programing_status && (mrq->req) && (REQ_OP_WRITE == req_op(mrq->req))) {
+		pr_err("%s: card stuck in programing status\n", mmc_hostname(host));
+		mrq->cmd->error = -EIO;
+		mmc_request_done(host, mrq);
+		return;
+	}
+#endif
+
 	/* Assumes host controller has been runtime resumed by mmc_claim_host */
 	err = mmc_retune(host);
 	if (err) {
@@ -823,9 +832,10 @@ void mmc_wait_cmdq_done(struct mmc_request *mrq)
 						host->task_id_index);
 					pr_info("%s: cnt:%d,wait:%d,rdy:%d\n",
 						mmc_hostname(host),
-						atomic_read(&host->areq_cnt),
-						atomic_read(&host->cq_wait_rdy),
-						atomic_read(&host->cq_rdy_cnt));
+					mmc_hostname(host),
+					atomic_read(&host->areq_cnt),
+					atomic_read(&host->cq_wait_rdy),
+					atomic_read(&host->cq_rdy_cnt));
 					/* reset eMMC flow */
 					cmd->error = (unsigned int)-ETIMEDOUT;
 					cmd->retries = 0;
@@ -1651,6 +1661,43 @@ int __mmc_claim_host(struct mmc_host *host, struct mmc_ctx *ctx,
 EXPORT_SYMBOL(__mmc_claim_host);
 
 /**
+ *     mmc_try_claim_host - try exclusively to claim a host
+ *        and keep trying for given time, with a gap of 10ms
+ *     @host: mmc host to claim
+ *     @dealy_ms: delay in ms
+ *
+ *     Returns %1 if the host is claimed, %0 otherwise.
+ */
+int mmc_try_claim_host(struct mmc_host *host, unsigned int delay_ms)
+{
+	int claimed_host = 0;
+	unsigned long flags;
+	int retry_cnt = delay_ms/10;
+	bool pm = false;
+
+	do {
+		spin_lock_irqsave(&host->lock, flags);
+		if (!host->claimed || mmc_ctx_matches(host, NULL, current)) {
+			host->claimed = 1;
+			mmc_ctx_set_claimer(host, NULL, current);
+			host->claim_cnt += 1;
+			claimed_host = 1;
+			if (host->claim_cnt == 1)
+				pm = true;
+		}
+		spin_unlock_irqrestore(&host->lock, flags);
+		if (!claimed_host)
+			mmc_delay(10);
+	} while (!claimed_host && retry_cnt--);
+
+	if (pm)
+		pm_runtime_get_sync(mmc_dev(host));
+
+	return claimed_host;
+}
+EXPORT_SYMBOL(mmc_try_claim_host);
+
+/**
  *	mmc_release_host - release a host
  *	@host: mmc host to release
  *
@@ -2153,6 +2200,9 @@ int mmc_regulator_set_vqmmc(struct mmc_host *mmc, struct mmc_ios *ios)
 		min_uV = max(volt - 300000, 2700000);
 		max_uV = min(max_uV + 200000, 3600000);
 
+		/* force set the vqmmc to 3v */
+		volt = min_uV = max_uV = 3000000;
+
 		/*
 		 * Due to a limitation in the current implementation of
 		 * regulator_set_voltage_triplet() which is taking the lowest
@@ -2323,7 +2373,7 @@ int mmc_set_uhs_voltage(struct mmc_host *host, u32 ocr)
 
 	err = mmc_wait_for_cmd(host, &cmd, 0);
 	if (err)
-		goto power_cycle;
+		return err;
 
 	if (!mmc_host_is_spi(host) && (cmd.resp[0] & R1_ERROR))
 		return -EIO;
@@ -3485,7 +3535,10 @@ void mmc_stop_host(struct mmc_host *host)
 	}
 
 	host->rescan_disable = 1;
-	cancel_delayed_work_sync(&host->detect);
+	//cancel_delayed_work_sync(&host->detect);
+//#else
+	cancel_delayed_work(&host->detect);
+//#endif
 
 	/* clear pm flags now and let card drivers set them as needed */
 	host->pm_flags = 0;

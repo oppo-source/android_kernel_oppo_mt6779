@@ -18,7 +18,7 @@
 #include <linux/sched/clock.h>
 
 #ifdef PLL_HOPPING_READY
-#include <mtk_freqhopping_drv.h>
+#include <mt_freqhopping_drv.h>
 #endif
 
 #if defined(USE_MEDIATEK_EMI)
@@ -184,7 +184,6 @@ static struct mtk_pm_qos_request smi_freq_request[MAX_COMM_NUM];
 static DEFINE_MUTEX(step_mutex);
 static DEFINE_MUTEX(bw_mutex);
 static s32 total_hrt_bw = UNINITIALIZED_VALUE;
-static s32 total_ui_only_hrt_bw = UNINITIALIZED_VALUE;
 static BLOCKING_NOTIFIER_HEAD(hrt_bw_throttle_notifier);
 
 
@@ -747,16 +746,11 @@ static bool is_camera_larb(u32 master_id)
 
 static s32 get_total_used_hrt_bw(void)
 {
-	s32 cam_hrt_bw;
-	s32 disp_hrt_bw;
-	s32 md_hrt_bw;
-
 	/* HRT Write BW should multiply a weight */
-	cam_hrt_bw = dram_write_weight(MULTIPLY_RATIO(get_cam_hrt_bw())/cam_occ_ratio());
-	disp_hrt_bw =
-		MULTIPLY_RATIO(larb_req[SMI_PMQOS_LARB_DEC(PORT_VIRTUAL_DISP)].total_hrt_data)
-		/disp_occ_ratio();
-	md_hrt_bw =
+	s32 cam_hrt_bw = dram_write_weight(get_cam_hrt_bw());
+	s32 disp_hrt_bw =
+		larb_req[SMI_PMQOS_LARB_DEC(PORT_VIRTUAL_DISP)].total_hrt_data;
+	s32 md_hrt_bw =
 		larb_req[SMI_PMQOS_LARB_DEC(PORT_VIRTUAL_MD)].total_hrt_data;
 	return (cam_hrt_bw + disp_hrt_bw + md_hrt_bw);
 }
@@ -1449,42 +1443,29 @@ s32 mm_hrt_get_available_hrt_bw(u32 master_id)
 {
 	s32 total_used_hrt_bw = get_total_used_hrt_bw();
 	s32 src_hrt_bw = larb_req[SMI_PMQOS_LARB_DEC(master_id)].total_hrt_data;
-	s32 cam_occ_bw;
-	s32 cam_occ_max_bw;
+	s32 cam_bw;
 	s32 result;
 
 	if (total_hrt_bw == UNINITIALIZED_VALUE)
 		return UNINITIALIZED_VALUE;
-	if (total_ui_only_hrt_bw == UNINITIALIZED_VALUE)
-		return UNINITIALIZED_VALUE;
 
-	cam_occ_bw = dram_write_weight(MULTIPLY_RATIO(get_cam_hrt_bw())/cam_occ_ratio());
 	if (is_camera_larb(master_id))
-		src_hrt_bw = cam_occ_bw;
-	else
-		src_hrt_bw = MULTIPLY_RATIO(src_hrt_bw)/disp_occ_ratio();
+		src_hrt_bw = dram_write_weight(get_cam_hrt_bw());
 
-	if (camera_max_bw > 0)
-		result = total_hrt_bw - total_used_hrt_bw + src_hrt_bw;
-	else
-		result = total_ui_only_hrt_bw - total_used_hrt_bw + src_hrt_bw;
+	result = total_hrt_bw - total_used_hrt_bw + src_hrt_bw;
 
 	if (SMI_PMQOS_LARB_DEC(master_id) ==
 			SMI_PMQOS_LARB_DEC(PORT_VIRTUAL_DISP)) {
 		/* Consider worst camera bw if camera is on */
-		cam_occ_max_bw = MULTIPLY_RATIO(camera_max_bw)/cam_occ_ratio();
-		if (cam_occ_max_bw > 0)
-			result = result + cam_occ_bw - cam_occ_max_bw;
+		if (camera_max_bw > 0) {
+			cam_bw = dram_write_weight(get_cam_hrt_bw());
+			result = result + cam_bw - camera_max_bw;
+		}
 
 		if (disp_bw_ceiling > 0 && !wait_next_max_cam_bw_set
 			&& disp_bw_ceiling < result)
 			result = disp_bw_ceiling;
 	}
-
-	if (is_camera_larb(master_id))
-		result = DIVIDE_RATIO(result * cam_occ_ratio());
-	else
-		result = DIVIDE_RATIO(result * disp_occ_ratio());
 	return ((result < 0)?0:result);
 }
 EXPORT_SYMBOL_GPL(mm_hrt_get_available_hrt_bw);
@@ -1585,7 +1566,7 @@ void mmdvfs_set_max_camera_hrt_bw(u32 bw)
 }
 EXPORT_SYMBOL_GPL(mmdvfs_set_max_camera_hrt_bw);
 
-static s32 get_total_hrt_bw(bool ui_only)
+static s32 get_total_hrt_bw(void)
 {
 	s32 result = 0;
 #if defined(USE_MEDIATEK_EMI)
@@ -1593,10 +1574,7 @@ static s32 get_total_hrt_bw(bool ui_only)
 	s32 ch_num = mtk_emicen_get_ch_cnt();
 	s32 io_width = get_io_width();
 
-	if (ui_only)
-		result = DIVIDE_RATIO(max_freq * ch_num * io_width * emi_occ_ui_only());
-	else
-		result = DIVIDE_RATIO(max_freq * ch_num * io_width * emi_occ_ratio());
+	result = MULTIPLY_BW_THRESH_HIGH(max_freq * ch_num * io_width);
 #elif defined(USE_MTK_DRAMC)
 	s32 max_freq = dram_steps_freq(0);
 	s32 ch_num = get_emi_ch_num();
@@ -1688,7 +1666,7 @@ static void mmdvfs_get_larb_node(struct device *dev, u32 larb_id)
 
 	ret = snprintf(larb_name, MAX_LARB_NAME, "larb%d", larb_id);
 	if (ret < 0)
-		pr_notice("snprintf return error, ret:%d, larb_id:%d\n", ret, larb_id);
+		pr_notice("snprintf return error, ret:%d\n", ret);
 	of_property_for_each_u32(dev->of_node, larb_name, prop, p, value) {
 		if (count >= MAX_PORT_COUNT) {
 			pr_notice("port size is over (%d)\n", MAX_PORT_COUNT);
@@ -2101,8 +2079,7 @@ static int __init mmdvfs_pmqos_late_init(void)
 	mmdvfs_qos_force_step(-1);
 	pr_notice("force flip step0 when late_init\n");
 #endif
-	total_hrt_bw = get_total_hrt_bw(false);
-	total_ui_only_hrt_bw = get_total_hrt_bw(true);
+	total_hrt_bw = get_total_hrt_bw();
 	init_me_swpm();
 	return 0;
 }
@@ -2244,7 +2221,7 @@ int mmdvfs_qos_force_step(int step)
 		return -EINVAL;
 	}
 	force_step = step;
-#if defined(CONFIG_MACH_MT6785) || defined(CONFIG_MACH_MT6768)
+#if defined(CONFIG_MACH_MT6785)
 #if (defined(CONFIG_MTK_MT6382_BDG) && defined(CONFIG_MTK_MT6382_VDO_MODE))
 	force_step = 0;
 #endif

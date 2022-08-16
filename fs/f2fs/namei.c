@@ -484,8 +484,7 @@ static struct dentry *f2fs_lookup(struct inode *dir, struct dentry *dentry,
 	unsigned int root_ino = F2FS_ROOT_INO(F2FS_I_SB(dir));
 	struct f2fs_filename fname;
 
-	/* Comment out since this has use-after-free issue */
-	/* trace_f2fs_lookup_start(dir, dentry, flags); */
+	trace_f2fs_lookup_start(dir, dentry, flags);
 
 	if (dentry->d_name.len > F2FS_NAME_LEN) {
 		err = -ENAMETOOLONG;
@@ -546,21 +545,18 @@ out_splice:
 		 * well.  For now, prevent the negative dentry
 		 * from being cached.
 		 */
-		/* Comment out since this has use-after-free issue */
-		/* trace_f2fs_lookup_end(dir, dentry, ino, err); */
+		trace_f2fs_lookup_end(dir, dentry, ino, err);
 		return NULL;
 	}
 #endif
 	new = d_splice_alias(inode, dentry);
 	err = PTR_ERR_OR_ZERO(new);
-	/* Comment out since this has use-after-free issue */
-	/* trace_f2fs_lookup_end(dir, dentry, ino, !new ? -ENOENT : err); */
+	trace_f2fs_lookup_end(dir, dentry, ino, !new ? -ENOENT : err);
 	return new;
 out_iput:
 	iput(inode);
 out:
-	/* Comment out since this has use-after-free issue */
-	/* trace_f2fs_lookup_end(dir, dentry, ino, err); */
+	trace_f2fs_lookup_end(dir, dentry, ino, err);
 	return ERR_PTR(err);
 }
 
@@ -572,8 +568,7 @@ static int f2fs_unlink(struct inode *dir, struct dentry *dentry)
 	struct page *page;
 	int err;
 
-	/* Comment out since this has use-after-free issue */
-	/* trace_f2fs_unlink_enter(dir, dentry); */
+	trace_f2fs_unlink_enter(dir, dentry);
 
 	if (unlikely(f2fs_cp_error(sbi)))
 		return -EIO;
@@ -617,8 +612,7 @@ static int f2fs_unlink(struct inode *dir, struct dentry *dentry)
 	if (IS_DIRSYNC(dir))
 		f2fs_sync_fs(sbi->sb, 1);
 fail:
-	/* Comment out since this has use-after-free issue */
-	/* trace_f2fs_unlink_exit(inode, err); */
+	trace_f2fs_unlink_exit(inode, err);
 	return err;
 }
 

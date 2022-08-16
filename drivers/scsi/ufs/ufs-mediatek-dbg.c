@@ -314,7 +314,7 @@ out_unlock:
 	spin_unlock_irqrestore(&cmd_hist_lock, flags);
 }
 
-static void probe_ufshcd_device_reset(void *data, const char *dev_name)
+static void probe_ufshcd_device_reset(void)
 {
 	int ptr;
 	unsigned long flags;

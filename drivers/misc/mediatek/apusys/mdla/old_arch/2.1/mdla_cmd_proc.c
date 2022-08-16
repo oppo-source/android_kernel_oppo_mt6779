@@ -100,22 +100,16 @@ int mdla_run_command_sync(
 	int boost_val = 0;
 	uint32_t cmdbuf_size = 0;
 
-	if (unlikely(cd == NULL || mdla_info == NULL)) {
-		mdla_error("%s:%d null check fail\n",
-			__func__, __LINE__);
+	if (unlikely(cd == NULL || mdla_info == NULL))
 		return -EINVAL;
-	}
 	if (unlikely(cd->count == 0))
 		return 0;
 	/*
 	 * apusys_hd == NULL: it call from UT
 	 */
 	if (unlikely(apusys_hd != NULL)) {
-		if (unlikely(apusys_hd->cmdbuf == NULL)) {
-			mdla_error("%s:%d null check fail\n",
-				__func__, __LINE__);
+		if (unlikely(apusys_hd->cmdbuf == NULL))
 			return -EINVAL;
-		}
 	}
 	core_id = mdla_info->mdlaid;
 	sched = mdla_info->sched;
@@ -138,8 +132,6 @@ int mdla_run_command_sync(
 	spin_lock_irqsave(&sched->lock, flags);
 	if (unlikely(sched->ce[priority] != NULL)) {
 		spin_unlock_irqrestore(&sched->lock, flags);
-		mdla_error("%s:%d has ongoing cmd with same priority\n",
-			__func__, __LINE__);
 		return -EINVAL;
 	}
 	sched->ce[priority] =
@@ -151,8 +143,6 @@ int mdla_run_command_sync(
 	ce = sched->ce[priority];
 	if (unlikely(ce == NULL)) {
 		spin_unlock_irqrestore(&sched->lock, flags);
-		mdla_error("%s:%d null check fail\n",
-			__func__, __LINE__);
 		return -EINVAL;
 	}
 	/* Get now boost_val */
@@ -164,31 +154,13 @@ int mdla_run_command_sync(
 	mdla_run_command_prepare(cd, apusys_hd, ce, priority);
 
 	/* check kva and mva are valid */
-	if (ce->kva == 0) {
-		spin_lock_irqsave(&sched->lock, flags);
-		if (priority == MDLA_LOW_PRIORITY && ce->batch_list_head)
-			kfree(ce->batch_list_head);
-		kfree(sched->ce[priority]);
-		sched->ce[priority] = NULL;
-		spin_unlock_irqrestore(&sched->lock, flags);
-		mdla_error("%s:%d rcv cmd with kva = 0\n",
-			__func__, __LINE__);
+	if (ce->kva == 0)
 		return -EINVAL;
-	}
 	/* check ce->count is valid */
 	cmdbuf_size =
 		apusys_hd->cmd_entry + apusys_hd->size - (uint64_t)ce->kva;
-	if (ce->count * MREG_CMD_SIZE > cmdbuf_size) {
-		spin_lock_irqsave(&sched->lock, flags);
-		if (priority == MDLA_LOW_PRIORITY && ce->batch_list_head)
-			kfree(ce->batch_list_head);
-		kfree(sched->ce[priority]);
-		sched->ce[priority] = NULL;
-		spin_unlock_irqrestore(&sched->lock, flags);
-		mdla_error("%s:%d illegal cmd size\n",
-			__func__, __LINE__);
+	if (ce->count * MREG_CMD_SIZE > cmdbuf_size)
 		return -EINVAL;
-	}
 
 #ifdef __APUSYS_MDLA_PMU_SUPPORT__
 	if (likely(!pmu_apusys_pmu_addr_check(apusys_hd))) {

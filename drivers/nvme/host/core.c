@@ -2091,8 +2091,7 @@ static void nvme_set_latency_tolerance(struct device *dev, s32 val)
 
 	if (ctrl->ps_max_latency_us != latency) {
 		ctrl->ps_max_latency_us = latency;
-		if (ctrl->state == NVME_CTRL_LIVE)
-			nvme_configure_apst(ctrl);
+		nvme_configure_apst(ctrl);
 	}
 }
 

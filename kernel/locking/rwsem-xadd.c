@@ -93,6 +93,10 @@ void __init_rwsem(struct rw_semaphore *sem, const char *name,
 	sem->owner = NULL;
 	osq_lock_init(&sem->osq);
 #endif
+#ifdef OPLUS_FEATURE_SCHED_ASSIST
+	sem->ux_dep_task = NULL;
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
+
 #ifdef CONFIG_MTK_TASK_TURBO
 	sem->turbo_owner = NULL;
 #endif
@@ -230,7 +234,6 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
 
 		tsk = waiter->task;
 		get_task_struct(tsk);
-
 		/*
 		 * Ensure calling get_task_struct() before setting the reader
 		 * waiter to nil such that rwsem_down_read_failed() cannot
@@ -264,11 +267,18 @@ __rwsem_down_read_failed_common(struct rw_semaphore *sem, int state)
 	raw_spin_lock_irq(&sem->wait_lock);
 	if (list_empty(&sem->wait_list))
 		adjustment += RWSEM_WAITING_BIAS;
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && !defined(CONFIG_MTK_TASK_TURBO)
+	if (sysctl_sched_assist_enabled)
+		rwsem_list_add(waiter.task, &waiter.list, &sem->wait_list);
+	else
+		list_add_tail(&waiter.list, &sem->wait_list);
+#else
 #ifdef CONFIG_MTK_TASK_TURBO
 	rwsem_list_add(waiter.task, &waiter.list, &sem->wait_list);
 #else
 	list_add_tail(&waiter.list, &sem->wait_list);
 #endif
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
 
 	/* we're now waiting on the lock, but no longer actively locking */
 	count = atomic_long_add_return(adjustment, &sem->count);
@@ -283,6 +293,11 @@ __rwsem_down_read_failed_common(struct rw_semaphore *sem, int state)
 	    (count > RWSEM_WAITING_BIAS &&
 	     adjustment != -RWSEM_ACTIVE_READ_BIAS))
 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
+#ifdef OPLUS_FEATURE_SCHED_ASSIST
+	if (sysctl_sched_assist_enabled) {
+		rwsem_set_inherit_ux(current, waiter.task, READ_ONCE(sem->owner), sem);
+	}
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
 
 #ifdef CONFIG_MTK_TASK_TURBO
 	if (waiter.task)
@@ -303,7 +318,13 @@ __rwsem_down_read_failed_common(struct rw_semaphore *sem, int state)
 			raw_spin_unlock_irq(&sem->wait_lock);
 			break;
 		}
+#if defined (OPLUS_FEATURE_HEALTHINFO) && defined (CONFIG_OPLUS_JANK_INFO)
+		current->in_downread = 1;
+#endif /* OPLUS_FEATURE_HEALTHINFO */
 		schedule();
+#if defined (OPLUS_FEATURE_HEALTHINFO) && defined (CONFIG_OPLUS_JANK_INFO)
+		current->in_downread = 0;
+#endif /* OPLUS_FEATURE_HEALTHINFO */
 	}
 
 	__set_current_state(TASK_RUNNING);
@@ -556,12 +577,18 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 	/* account for this before adding a new element to the list */
 	if (list_empty(&sem->wait_list))
 		waiting = false;
-
+#if defined(OPLUS_FEATURE_SCHED_ASSIST) && !defined(CONFIG_MTK_TASK_TURBO)
+	if (sysctl_sched_assist_enabled)
+		rwsem_list_add(waiter.task, &waiter.list, &sem->wait_list);
+	else
+		list_add_tail(&waiter.list, &sem->wait_list);
+#else /* OPLUS_FEATURE_SCHED_ASSIST */
 #ifdef CONFIG_MTK_TASK_TURBO
 	rwsem_list_add(waiter.task, &waiter.list, &sem->wait_list);
 #else
 	list_add_tail(&waiter.list, &sem->wait_list);
 #endif
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
 
 	/* we're now waiting on the lock, but no longer actively locking */
 	if (waiting) {
@@ -592,6 +619,12 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 	} else
 		count = atomic_long_add_return(RWSEM_WAITING_BIAS, &sem->count);
 
+#ifdef OPLUS_FEATURE_SCHED_ASSIST
+	if (sysctl_sched_assist_enabled) {
+		rwsem_set_inherit_ux(waiter.task, current, READ_ONCE(sem->owner), sem);
+	}
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
+
 #ifdef CONFIG_MTK_TASK_TURBO
 	/* inherit if current is turbo */
 	rwsem_start_turbo_inherit(sem);
@@ -607,8 +640,13 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 		do {
 			if (signal_pending_state(state, current))
 				goto out_nolock;
-
+#if defined (OPLUS_FEATURE_HEALTHINFO) && defined (CONFIG_OPLUS_JANK_INFO)
+			current->in_downwrite = 1;
+#endif /* OPLUS_FEATURE_HEALTHINFO */
 			schedule();
+#if defined (OPLUS_FEATURE_HEALTHINFO) && defined (CONFIG_OPLUS_JANK_INFO)
+			current->in_downwrite = 0;
+#endif /* OPLUS_FEATURE_HEALTHINFO */
 			set_current_state(state);
 		} while ((count = atomic_long_read(&sem->count)) & RWSEM_ACTIVE_MASK);
 
@@ -720,7 +758,11 @@ locked:
 
 	if (!list_empty(&sem->wait_list))
 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
-
+#ifdef OPLUS_FEATURE_SCHED_ASSIST
+	if (sysctl_sched_assist_enabled) {
+		rwsem_unset_inherit_ux(sem, current);
+	}
+#endif /* OPLUS_FEATURE_SCHED_ASSIST */
 	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
 	wake_up_q(&wake_q);
 

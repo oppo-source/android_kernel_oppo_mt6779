@@ -195,12 +195,10 @@ static int is_skb_gro(struct sk_buff *skb)
 
 	packet_type = skb->data[0] & 0xF0;
 	if (packet_type == IPV4_VERSION &&
-		(ip_hdr(skb)->protocol == IPPROTO_TCP ||
-		ip_hdr(skb)->protocol == IPPROTO_UDP))
+		ip_hdr(skb)->protocol == IPPROTO_TCP)
 		return 1;
 	else if (packet_type == IPV6_VERSION &&
-		(ipv6_hdr(skb)->nexthdr == IPPROTO_TCP ||
-		ipv6_hdr(skb)->nexthdr == IPPROTO_UDP))
+		ipv6_hdr(skb)->nexthdr == IPPROTO_TCP)
 		return 1;
 	else
 		return 0;

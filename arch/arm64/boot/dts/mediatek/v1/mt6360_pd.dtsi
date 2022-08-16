@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (c) 2021 MediaTek Inc.
 */
@@ -24,10 +24,9 @@
 		mt6360pd,pcb_gpio_num = <16>;
 		/* 0: gpio low as phone, 1: gpio high as phone */
 		mt6360pd,pcb_gpio_polarity = <0>;
-		interrupt-parent = <&mt6360_pmu>;
+		interrupt-parent = <&subpmic_mtk>;
 		interrupts = <64 0>;
 		interrupt-names = "usbid_evt";
-		bootmode = <&chosen>;
 		pd-data {
 			pd,vid = <0x29cf>;
 			pd,pid = <0x6360>;

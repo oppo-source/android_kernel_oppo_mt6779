@@ -49,17 +49,6 @@ config MTK_BASE_POWER
 	  Select if you want to enable MediaTek power
 	  management feature.
 
-config NONLINEAR_FREQ_CTL
-	bool "Non-linear frequency control"
-	depends on MTK_CPU_FREQ
-	depends on MTK_UNIFY_POWER
-	help
-	  Choose this option to enable non-linear frequency control.
-	  This will change per-opp capacity from linear scaled by
-	  freuqency to evaluated by performance. This makes capacity
-	  more accurate and will let scheduler/schedutil use more
-	  suitable frequency.
-
 config MTK_CLK_BUFFER
 	tristate "MediaTek Clock Buffer Support"
 	select REGMAP
@@ -237,17 +226,6 @@ config MTK_SEC_VIDEO_PATH_SUPPORT
 	  relative options including: MTK_TEE_SUPPORT, MTK_GP_SUPPORT,
 	  MTK_DRM_L1_SUPPORT, MTK_PERSIST_PARTITION_SUPPORT,
 	  MTK_DRM_KEY_MNG_SUPPORT.
-
-config MTK_SVP_ON_MTEE_SUPPORT
-        bool "Enable MTK SVP on MTEE"
-        help
-          This enable MTK TEE function of Widevine Level1,
-          relative modules include: DRM, vdec, venc, cmdq, m4u, display,
-          tplay/DXCC,ssvp, secmem, TEE frameworks, keyinstall, DAPC, MPU,
-          ION, gralloc,RPMB, DXCC, mediacodec, WFD, MDP.etc
-          relative options including: MTK_TEE_SUPPORT, MTK_GP_SUPPORT,
-          MTK_DRM_L1_SUPPORT, MTK_PERSIST_PARTITION_SUPPORT,
-          MTK_DRM_KEY_MNG_SUPPORT
 
 config MTK_DRM_KEY_MNG_SUPPORT
 	bool "Enable MTK DRM Key Manager Support"
@@ -514,6 +492,7 @@ config MTK_GKI_COMPAT
 	  It's testing only, no any guarantee.
 	  Select "Y" if you want to use.
 	  Select "N" if you are not sure.
+
 config MTK_HIGH_FRAME_RATE
 	bool "high frame rate,for 90hz or 120hz display"
 	default n
@@ -529,7 +508,6 @@ config MTK_MT6382_BDG
 source "drivers/misc/mediatek/met_drv/Kconfig"
 source "drivers/misc/mediatek/mtprof/Kconfig"
 source "drivers/misc/mediatek/aee/Kconfig"
-source "drivers/misc/mediatek/slbc/Kconfig"
 source "drivers/misc/mediatek/cm_mgr/Kconfig"
 source "drivers/misc/mediatek/dramc/Kconfig"
 source "drivers/misc/mediatek/emi/Kconfig"
@@ -549,6 +527,9 @@ source "drivers/misc/mediatek/mcupm/Kconfig"
 source "drivers/misc/mediatek/rt-regmap/Kconfig"
 source "drivers/misc/mediatek/selinux_warning/Kconfig"
 source "drivers/misc/mediatek/log_store/Kconfig"
+#ifdef OPLUS_BUG_STABILITY
+source "drivers/misc/mediatek/boot/Kconfig"
+#endif
 source "drivers/misc/mediatek/dfd/Kconfig"
 source "drivers/misc/mediatek/dbgtop/Kconfig"
 source "drivers/misc/mediatek/vow/Kconfig"

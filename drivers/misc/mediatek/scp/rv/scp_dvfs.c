@@ -281,11 +281,9 @@ static int scp_update_pmic_vow_lp_mode(bool on)
 	}
 
 	if (on)
-		/* enable VOW low power mode */
 		pmic_buck_vgpu11_lp(SRCLKEN11, 0, 1, HW_LP);
 	else
-		/* disable VOW low power mode */
-		pmic_buck_vgpu11_lp(SRCLKEN11, 0, 1, HW_OFF);
+		pmic_buck_vgpu11_lp(SRCLKEN11, 0, 1, HW_LP);
 
 	return ret;
 }
@@ -1042,7 +1040,7 @@ static ssize_t mt_scp_dvfs_sleep_proc_write(
 		}
 	} else if (!strcmp(cmd, "dbg_core")) {
 		dbg_core = slp_cmd;
-		if (dbg_core >= SCP_CORE_0 && dbg_core < SCP_MAX_CORE_NUM)
+		if (dbg_core < SCP_MAX_CORE_NUM)
 			dvfs.cur_dbg_core = dbg_core;
 	} else {
 		pr_notice("[%s]: invalid command: %s\n", __func__, cmd);
@@ -2163,12 +2161,6 @@ static int __init mt_scp_dvfs_pdrv_probe(struct platform_device *pdev)
 		return 0;
 	}
 
-	/* turn on scp_sel mux before access any scp reg/sram */
-	scp_pll_ctrl_set(PLL_ENABLE, CLK_26M);
-
-	/* request 26M resource  */
-	scp_resource_req(SCP_REQ_26M);
-
 	/* do ulposc calibration */
 	mt_scp_dvfs_do_ulposc_cali_process();
 	kfree(dvfs.ulposc_hw.cali_configs);
@@ -2261,7 +2253,6 @@ fail:
 
 void __exit scp_dvfs_exit(void)
 {
-	unregister_pm_notifier(&scp_pm_notifier_func);
 	platform_driver_unregister(&mt_scp_dvfs_pdrv);
 }
 

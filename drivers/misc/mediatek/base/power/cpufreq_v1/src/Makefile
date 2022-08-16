@@ -28,20 +28,14 @@ else
 ifeq ($(CONFIG_MACH_MT6781),y)
 MTK_PLATFORM := mt6781
 else
-ifeq ($(CONFIG_MACH_MT6771),y)
-MTK_PLATFORM := mt6771
-else
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 endif
 endif
 endif
 endif
 endif
-endif
 
-#ccflags-y += -I$(CPUFREQ_ROOT_DIR)/src/mach/$(MTK_PLATFORM)/include
-ccflags-y += -I$(CPUFREQ_ROOT_DIR)/src/mach/$(MTK_PLATFORM)
-include $(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach/$(MTK_PLATFORM)/Makefile
+ccflags-y += -I$(CPUFREQ_ROOT_DIR)/src/mach/$(MTK_PLATFORM)/include
 
 
 ccflags-y += \
@@ -63,9 +57,6 @@ else ifeq ($(CONFIG_MACH_MT6877),y)
 else ifeq ($(CONFIG_MACH_MT6833),y)
 	ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/v2/
 else ifeq ($(CONFIG_MACH_MT6768),y)
-	ccflags-y += -DUSE_SSPM_VER_V1
-	ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/v1/
-else ifeq ($(CONFIG_MACH_MT6771),y)
 	ccflags-y += -DUSE_SSPM_VER_V1
 	ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/v1/
 else

@@ -13,7 +13,12 @@
 #include <linux/workqueue.h>
 
 /* Version info*/
-#define SKHPB_DD_VER				0x010508
+#define SKHPB_DD_VER				0x010506
+
+/* QUIRKs */
+/* Use READ16 instead of HPB_READ command,
+ * This is workaround solution to countmeasure QCT ICE issue. */
+#define SKHPB_QUIRK_USE_READ_16_FOR_ENCRYPTION (1 << 0)
 
 /* This quirk makes HPB driver always works as Devie Control Mode.
  * To cover old Configuration descriptor format which interpret

@@ -74,7 +74,7 @@
 #endif
 
 #ifdef CONFIG_MTK_CPU_MSSV
-unsigned int __attribute__((weak)) cpumssv_get_state(void) { return 0; }
+extern unsigned int cpumssv_get_state(void);
 #endif
 
 #ifdef CONFIG_HYBRID_CPU_DVFS
@@ -1291,8 +1291,6 @@ int cpuhvfs_set_dvfs(int cluster_id, unsigned int freq)
 	unsigned int freq_idx = 0;
 
 	p = id_to_cpu_dvfs(cluster_id);
-
-	arch_set_freq_scale(p->mt_policy->cpus, freq, p->mt_policy->cpuinfo.max_freq);
 
 	/* [3:0] freq_idx */
 	freq_idx = _search_available_freq_idx(p, freq, 0);

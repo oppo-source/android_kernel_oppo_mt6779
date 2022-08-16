@@ -459,6 +459,20 @@ firmware_class.path=/vendor/firmware";
 		};
 	};
 
+// #ifdef OPLUS_FEATURE_POWER_THERMAL
+	shell_front {
+		compatible = "oplus,shell-temp";
+	};
+
+	shell_frame {
+		compatible = "oplus,shell-temp";
+	};
+
+	shell_back {
+		compatible = "oplus,shell-temp";
+	};
+// #endif /* OPLUS_FEATURE_POWER_THERMAL */
+
 	psci {
 		compatible      = "arm,psci-1.0";
 		method          = "smc";
@@ -784,6 +798,15 @@ firmware_class.path=/vendor/firmware";
 			mode-ddr-reserve = <BOOT_DDR_RSVD>;
 			mode-meta = <BOOT_META>;
 			mode-rpmbpk = <BOOT_RPMBPK>;
+                        //#ifdef OPLUS_BUG_STABILITY
+                        mode-kernel = <BOOT_KERNEL>;
+                        mode-silence = <BOOT_SILENCE>;
+                        mode-sau = <BOOT_SAU>;
+                        mode-safe = <BOOT_SAFE>;
+                        mode-sblmemtest = <BOOT_AGINGTEST>;
+                        mode-ftm = <BOOT_FACTORY>;
+                        mode-edl = <BOOT_EDL>;
+                        //endif /* OPLUS_BUG_STABILITY */
 		};
 	};
 
@@ -1030,10 +1053,6 @@ firmware_class.path=/vendor/firmware";
 
 	accdet: accdet {
 		compatible = "mediatek,pmic-accdet";
-	};
-
-	goodix_fp: fingerprint {
-		compatible = "mediatek,goodix-fp";
 	};
 
 	topmisc@10011000 {
@@ -2547,7 +2566,12 @@ firmware_class.path=/vendor/firmware";
 		/* interrupts = <GIC_SPI 153 IRQ_TYPE_LEVEL_LOW>; */
 		mediatek,btcvsd_snd = <&btcvsd_snd>;
 	};
+	sia81xx_L:sia81xx_L {
 
+	};
+	sia81xx_R:sia81xx_R {
+
+	};
 	audgpio: mt_soc_dl1_pcm@11220000 {
 		compatible = "mediatek,mt_soc_pcm_dl1";
 		reg = <0 0x11220000 0 0x1000>;
@@ -3321,19 +3345,21 @@ firmware_class.path=/vendor/firmware";
 		compatible = "mediatek,flashlight_core";
 	};
 
-	flashlights_mt6370: flashlights_mt6370 {
-		compatible = "mediatek,flashlights_mt6370";
-		decouple = <0>;
+	flashlights_zhaoyun: flashlights_zhaoyun {
+		compatible = "mediatek,flashlights_zhaoyun";
+		decouple = <1>;
 		channel@1 {
 			type = <0>;
 			ct = <0>;
 			part = <0>;
 		};
+		/*
 		channel@2 {
 			type = <0>;
 			ct = <1>;
 			part = <0>;
 		};
+		*/
 	};
 
 	gps {
@@ -3539,7 +3565,9 @@ firmware_class.path=/vendor/firmware";
 	extcon_usb: extcon_usb {
 		compatible = "mediatek,extcon-usb";
 		charger = <&mt6370_chg>;
+#if (!defined CONFIG_CHARGER_BQ2560X) || (!defined CONFIG_TCPC_RT1711H)
 		vbus-supply = <&otg_vbus>;
+#endif
 		vbus-voltage = <5000000>;
 		vbus-current = <1800000>;
 		dev-conn = <&usb>;
@@ -3572,6 +3600,22 @@ firmware_class.path=/vendor/firmware";
 		/* reserved for overlay by odm */
 	};
 
+//#ifdef OPLUS_FEATURE_FINGERPRINT
+	oplus_fp_common:oplus_fp_common { //Slave driver and CS ID
+		compatible = "oplus,fp_common"; //Manufacture, and Model
+	};
+
+	silead_fp: silead_fp {
+		status        = "ok";
+		compatible = "sil,silead_fp-pins";
+	};
+
+    jiiov_fp: jiiov_fp {
+		compatible = "jiiov,fingerprint";
+		status = "okay";
+	};
+
+//#endif /* OPLUS_FEATURE_FINGERPRINT */
 
 	memory_ssmr_features: memory-ssmr-features {
 		compatible = "mediatek,memory-ssmr-features";
@@ -3821,6 +3865,12 @@ firmware_class.path=/vendor/firmware";
 		required-opps = <&dvfsrc_freq_opp0>,
 				<&dvfsrc_freq_opp1>;
 	};
+//#ifdef OPLUS_BUG_COMPATIBILITY
+	swtp: swtp {
+	};
+	swtp_1: swtp_1 {
+	};
+//#endif  /*OPLUS_BUG_COMPATIBILITY*/
 
 };
 
@@ -3829,6 +3879,9 @@ firmware_class.path=/vendor/firmware";
 #include "mediatek/bat_setting/mt6765_battery_prop.dtsi"
 #include "mediatek/mt6370.dtsi"
 #include "mediatek/mt6370_pd.dtsi"
+#ifdef CONFIG_TCPC_RT1711H
+#include "mediatek/tcpc_config_rt1715.dtsi"
+#endif
 #ifdef CONFIG_CHARGER_RT9471
 #include "mediatek/rt9471.dtsi"
 #endif

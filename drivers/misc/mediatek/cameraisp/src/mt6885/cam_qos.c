@@ -21,7 +21,7 @@
 #ifdef CONFIG_MTK_QOS_SUPPORT_ENABLE
 #ifndef EP_STAGE
 #include <mmdvfs_pmqos.h>
-#include <linux/soc/mediatek/mtk-pm-qos.h>
+#include <linux/pm_qos.h>
 #include <mt6885-larb-port.h>
 #endif
 #else

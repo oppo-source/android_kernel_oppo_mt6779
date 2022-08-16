@@ -44,9 +44,6 @@
 #include "imgsensor_ca.h"
 #endif
 
-#ifdef VENDOR_EDIT
-	#undef VENDOR_EDIT
-#endif
 #define USE_REMOSAIC 1
 
 #ifndef USE_TNP_BURST
@@ -55,15 +52,12 @@
 
 
 
-#ifdef VENDOR_EDIT
-/*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 #define DEVICE_VERSION_S5k3P9SP     "s5k3p9sp"
 extern void register_imgsensor_deviceinfo(
 	char *name, char *version, u8 module_id);
 static kal_uint8 deviceInfo_register_value;
 static kal_uint32 streaming_control(kal_bool enable);
 #define MODULE_ID_OFFSET 0x0000
-#endif
 
 #define PFX "S5K3P9SP_camera_sensor"
 #define LOG_INF(format, args...) pr_debug(PFX "[%s] " format, __func__, ##args)
@@ -74,10 +68,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
 		.sensor_id = S5K3P9SP_SENSOR_ID,
-		#ifdef VENDOR_EDIT
-		/*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 		.module_id = 0x04,	//0x01 Sunny,0x05 QTEK
-		#endif
 		.checksum_value = 0x31e3fbe2,
 
 		.pre = {
@@ -203,7 +194,7 @@ static struct imgsensor_struct imgsensor = {
 	.autoflicker_en = KAL_FALSE,
 	/*auto flicker enable:*/
 	/*KAL_FALSE for disable auto flicker,KAL_TRUE for enable auto flicker*/
-	.test_pattern = 0,
+	.test_pattern = KAL_FALSE,
 	/*test pattern mode or not.*/
 	/*KAL_FALSE for in test pattern mode, KAL_TRUE for normal output*/
 	.enable_secure = KAL_FALSE,
@@ -246,8 +237,6 @@ static struct SENSOR_WINSIZE_INFO_STRUCT imgsensor_winsize_info[5] = {
  */
 /*0 flag   1-12 data*/
 
-#ifdef VENDOR_EDIT
-/*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 static kal_uint16 read_module_id(void)
 {
 	kal_uint16 get_byte = 0;
@@ -263,7 +252,6 @@ static kal_uint16 read_module_id(void)
 	return get_byte;
 
 }
-/*Henry.Chang@Camera.Driver add for 18531 ModuleSN*/
 static kal_uint8 gS5k3p9sp_SN[CAMERA_MODULE_SN_LENGTH];
 static void read_eeprom_SN(void)
 {
@@ -278,7 +266,6 @@ static void read_eeprom_SN(void)
 			idx, get_byte[idx], gS5k3p9sp_SN[idx]);
 	}
 }
-#endif
 
 static kal_uint16 read_cmos_sensor_16_16(kal_uint32 addr)
 {
@@ -4245,10 +4232,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 				LOG_INF("i2c write id: 0x%x, sensor id: 0x%x\n",
 					imgsensor.i2c_write_id, *sensor_id);
 				*sensor_id = S5K3P9SP_SENSOR_ID;
-				#ifdef VENDOR_EDIT
-/*Caohua.Lin@Camera.Driver add for 18011/18311  board 20180723*/
 				imgsensor_info.module_id = read_module_id();
-/*Henry.Chang@Camera.Driver add for ModuleSN  20181216*/
 				read_eeprom_SN();
 				LOG_INF("s5k3p9sp_module_id=%d\n",
 					imgsensor_info.module_id);
@@ -4259,7 +4243,6 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 					imgsensor_info.module_id);
 					deviceInfo_register_value = 0x01;
 				}
-				#endif
 				return ERROR_NONE;
 			}
 			LOG_INF("Read sensor id fail, id: 0x%x\n",
@@ -4366,7 +4349,7 @@ static kal_uint32 open(void)
 	imgsensor.dummy_pixel = 0;
 	imgsensor.dummy_line = 0;
 	imgsensor.ihdr_mode = 0;
-	imgsensor.test_pattern = 0;
+	imgsensor.test_pattern = KAL_FALSE;
 	imgsensor.current_fps = imgsensor_info.pre.max_framerate;
 	spin_unlock(&imgsensor_drv_lock);
 
@@ -4995,36 +4978,21 @@ static kal_uint32 get_default_framerate_by_scenario(
 	return ERROR_NONE;
 }
 
-static kal_uint32 set_test_pattern_mode(kal_uint32 modes,
-	struct SET_SENSOR_PATTERN_SOLID_COLOR *pdata)
+static kal_uint32 set_test_pattern_mode(kal_bool enable)
 {
-	kal_uint16 Color_R, Color_Gr, Color_Gb, Color_B;
+	LOG_INF("enable: %d\n", enable);
 
-	pr_debug("set_test_pattern enum: %d\n", modes);
-
-	if (modes) {
-		//write_cmos_sensor_8(0x0600, modes>>4);
-		write_cmos_sensor_16_16(0x0600, modes);
-		if (modes == 1 && (pdata != NULL)) { //Solid Color
-			pr_debug("R=0x%x,Gr=0x%x,B=0x%x,Gb=0x%x",
-				pdata->COLOR_R, pdata->COLOR_Gr, pdata->COLOR_B, pdata->COLOR_Gb);
-			Color_R = (pdata->COLOR_R >> 22) & 0x3FF; //10bits depth color
-			Color_Gr = (pdata->COLOR_Gr >> 22) & 0x3FF;
-			Color_B = (pdata->COLOR_B >> 22) & 0x3FF;
-			Color_Gb = (pdata->COLOR_Gb >> 22) & 0x3FF;
-			write_cmos_sensor_16_8(0x0602, (Color_R >> 8) & 0x3);
-			write_cmos_sensor_16_8(0x0603, Color_R & 0xFF);
-			write_cmos_sensor_16_8(0x0604, (Color_Gr >> 8) & 0x3);
-			write_cmos_sensor_16_8(0x0605, Color_Gr & 0xFF);
-			write_cmos_sensor_16_8(0x0606, (Color_B >> 8) & 0x3);
-			write_cmos_sensor_16_8(0x0607, Color_B & 0xFF);
-			write_cmos_sensor_16_8(0x0608, (Color_Gb >> 8) & 0x3);
-			write_cmos_sensor_16_8(0x0609, Color_Gb & 0xFF);
-		}
-	} else
-		write_cmos_sensor_16_8(0x0600, 0x00); /*No pattern*/
+	if (enable) {
+/* 0x5E00[8]: 1 enable,  0 disable*/
+/* 0x5E00[1:0]; 00 Color bar, 01 Random Data, 10 Square, 11 BLACK*/
+		write_cmos_sensor_16_16(0x0600, 0x0002);
+	} else {
+/* 0x5E00[8]: 1 enable,  0 disable*/
+/* 0x5E00[1:0]; 00 Color bar, 01 Random Data, 10 Square, 11 BLACK*/
+		write_cmos_sensor_16_16(0x0600, 0x0000);
+	}
 	spin_lock(&imgsensor_drv_lock);
-	imgsensor.test_pattern = modes;
+	imgsensor.test_pattern = enable;
 	spin_unlock(&imgsensor_drv_lock);
 	return ERROR_NONE;
 }
@@ -5126,8 +5094,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 		}
 		break;
 
-	#ifdef VENDOR_EDIT
-	/*Henry.Chang@Camera.Driver add for 18531 ModuleSN*/
 	case SENSOR_FEATURE_GET_MODULE_SN:
 		LOG_INF("s5k3p9 GET_MODULE_SN:%d %d\n",
 			*feature_para_len, *feature_data_32);
@@ -5139,8 +5105,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 				| (gS5k3p9sp_SN[4*(*feature_data_32)] & 0xFF);
 		}
 		break;
-	/*Caohua.Lin@Camera.Driver , 20190222, add for ITS--sensor_fusion*/
-	#endif
 	case SENSOR_FEATURE_GET_OFFSET_TO_START_OF_EXPOSURE:
 		*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
 			= 2500000;
@@ -5218,12 +5182,10 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	case SENSOR_FEATURE_CHECK_SENSOR_ID:
 		get_imgsensor_id(feature_return_para_32);
 		break;
-	#ifdef VENDOR_EDIT
 	/*Caohua.Lin@CAmera, modify for different module 20180723*/
 	case SENSOR_FEATURE_CHECK_MODULE_ID:
 		*feature_return_para_32 = imgsensor_info.module_id;
 		break;
-	#endif
 	case SENSOR_FEATURE_SET_AUTO_FLICKER_MODE:
 		set_auto_flicker_mode((BOOL)*feature_data_16,
 			*(feature_data_16+1));
@@ -5246,8 +5208,7 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	 *break;
 	 */
 	case SENSOR_FEATURE_SET_TEST_PATTERN:
-		set_test_pattern_mode((UINT32)*feature_data,
-		(struct SET_SENSOR_PATTERN_SOLID_COLOR *)(uintptr_t)(*(feature_data + 1)));
+		set_test_pattern_mode((BOOL)*feature_data);
 		break;
 	/*for factory mode auto testing*/
 	case SENSOR_FEATURE_GET_TEST_PATTERN_CHECKSUM_VALUE:
@@ -5475,8 +5436,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 			break;
 		}
 		break;
-	#ifdef VENDOR_EDIT
-	/*Caohua.Lin@Camera.Driver 20180707 add for s5k3p9sp crosstalk*/
 	case SENSOR_FEATURE_GET_4CELL_DATA:
 		{
 		int type = (kal_uint16)(*feature_data);
@@ -5497,7 +5456,6 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 		}
 		break;
 		}
-	#endif
 
 	default:
 		break;

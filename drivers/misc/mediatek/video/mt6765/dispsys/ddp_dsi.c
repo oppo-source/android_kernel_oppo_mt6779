@@ -4585,6 +4585,7 @@ int DSI_Send_ROI(enum DISP_MODULE_ENUM module, void *handle, unsigned int x,
 
 static void lcm_set_reset_pin(UINT32 value)
 {
+#ifndef OPLUS_BUG_STABILITY
 	if (!_is_lcm_cmd_mode(DISP_MODULE_DSI0)) {
 		DSI_OUTREG32(NULL, DISP_REG_CONFIG_MMSYS_LCM_RST_B, value);
 	} else {
@@ -4593,7 +4594,41 @@ static void lcm_set_reset_pin(UINT32 value)
 		else
 			disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
 	}
+#else
+        if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
+#endif
 }
+//#ifdef OPLUS_BUG_STABILITY
+ long lcm_bias_vsp(UINT32 value)
+{
+	pr_err("[lcm]set vsp value is %d\n",value);
+	if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP0);
+	return 0;
+}
+ void lcm_bias_vsn(UINT32 value)
+{
+	 pr_err("[lcm]set vsn value is %d\n",value);
+
+	if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN0);
+}
+
+static void lcm_vddio18_enable(UINT32 value)
+{
+	if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_VDDIO18_EN1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_VDDIO18_EN0);
+}
+//#endif
 
 static void lcm1_set_reset_pin(UINT32 value)
 {
@@ -4806,6 +4841,11 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 	}
 
 	utils->set_reset_pin = lcm_set_reset_pin;
+//#ifdef OPLUS_BUG_STABILITY
+	utils->set_gpio_lcd_enp_bias = lcm_bias_vsp;
+	utils->set_gpio_lcd_enn_bias = lcm_bias_vsn;
+	utils->set_gpio_lcm_vddio_ctl = lcm_vddio18_enable;
+//#endif
 	utils->udelay = lcm_udelay;
 	utils->mdelay = lcm_mdelay;
 	utils->set_te_pin = NULL;
@@ -4914,7 +4954,8 @@ int ddp_dsi_set_lcm_utils(enum DISP_MODULE_ENUM module,
 	utils->set_gpio_pull_enable =
 		(int (*)(unsigned int, unsigned char))mt_set_gpio_pull_enable;
 #else
-	utils->set_gpio_lcd_enp_bias = lcd_enp_bias_setting;
+	//utils->set_gpio_lcd_enp_bias = lcd_enp_bias_setting;
+
 #endif
 #endif
 

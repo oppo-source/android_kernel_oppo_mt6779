@@ -49,9 +49,6 @@ struct plt_ipi_data_s {
 		struct {
 			unsigned int enable;
 		} logger;
-		struct {
-			unsigned int mode;
-		} ts;
 	} u;
 };
 

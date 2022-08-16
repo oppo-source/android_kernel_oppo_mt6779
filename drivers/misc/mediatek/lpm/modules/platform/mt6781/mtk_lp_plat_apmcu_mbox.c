@@ -285,7 +285,7 @@ void mtk_wait_mbox_init_done(void)
 
 	mtk_lp_apmcu_pwr_ctrl_setting(
 			 MCUPM_MCUSYS_CTRL |
-#ifdef CONFIG_MTK_CM_MGR_LEGACY
+#ifdef CONFIG_MTK_CM_MGR
 			 MCUPM_CM_CTRL |
 #endif
 			 MCUPM_BUCK_CTRL |

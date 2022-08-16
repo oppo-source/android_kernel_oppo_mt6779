@@ -409,8 +409,8 @@ static void mtk_atomic_disp_rsz_roi(struct drm_device *dev,
 		else
 			idx = i - (OVL_LAYER_NR + EXTERNAL_INPUT_LAYER_NR);
 
-		if (crtc && (comp_state[drm_crtc_index(crtc)][idx].layer_caps
-			& MTK_DISP_RSZ_LAYER)) {
+		if (comp_state[drm_crtc_index(crtc)][idx].layer_caps
+			& MTK_DISP_RSZ_LAYER) {
 			mtk_rect_make(&src_layer_roi,
 				((dst_x * src_w * 10) / dst_w + 5) / 10,
 				((dst_y * src_h * 10) / dst_h + 5) / 10,
@@ -1070,7 +1070,7 @@ static int mtk_atomic_check(struct drm_device *dev,
 	if (ret)
 		return ret;
 
-	for_each_new_crtc_in_state(state, crtc, crtc_state, i) {
+	for_each_old_crtc_in_state(state, crtc, crtc_state, i) {
 		old_state = to_mtk_crtc_state(crtc->state);
 		new_state = to_mtk_crtc_state(crtc_state);
 

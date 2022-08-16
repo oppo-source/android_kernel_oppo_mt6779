@@ -153,7 +153,6 @@ config MACH_MT6739
 	select DEVAPC_LEGACY
 	select OVERLAY_FS
 	select MTK_SECURITY_SW_SUPPORT
-	select PM_OPP
 	help
 	  This enables support for MediaTek MT6739.
 	  It enables all necessary feature for MP including
@@ -310,6 +309,7 @@ config MACH_MT6768
 	select FAST_CIRQ_CLONE_FLUSH
 	select MTK_ION_CACHE_OPTIMIZATION
 	select MTK_BOUNCING_CHECK if MTK_AEE_FEATURE
+	select MTK_TIMER_SYSTIMER
 	select MTK_LM_MODE if !MTK_GMO_RAM_OPTIMIZE
 	select MTK_SECURITY_SW_SUPPORT
 	select DEVAPC_MT6768
@@ -343,8 +343,6 @@ config MACH_MT6771
 	select MFD_SYSCON
 	select MTK_DRAMC
 	select CPU_IDLE
-	select MTK_BASE_POWER
-	select MTK_GIC_V3_EXT
 	select MTK_LM_MODE if !MTK_GMO_RAM_OPTIMIZE
 	select MTK_SYSIRQ
 	select MTK_EMI
@@ -812,7 +810,6 @@ config MACH_MT6893
 	select MTK_BUS_TRACER
 	select MTK_PMQOS
 	select MTK_TINYSYS_SCP_RV_SUPPORT
-	select MEDIATEK_MC if MEMORY
         help
 	  This enables support for MediaTek MT6893
 	  Support for aarch64 Architecture

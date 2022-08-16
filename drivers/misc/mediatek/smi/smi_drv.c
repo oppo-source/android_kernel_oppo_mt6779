@@ -28,7 +28,7 @@
 #if IS_ENABLED(CONFIG_MEDIATEK_EMI)
 #include <memory/mediatek/emi.h>
 #elif IS_ENABLED(CONFIG_MTK_EMI)
-//#include <plat_debug_api.h>
+#include <plat_debug_api.h>
 #elif IS_ENABLED(CONFIG_MTK_EMI_BWL)
 #include <emi_mbw.h>
 #endif
@@ -42,13 +42,11 @@
 #endif
 
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
-#include <sspm_define.h>
-#if IS_ENABLED(SMI_SSPM)
-#include <sspm_reservedmem_define.h>
+#if IS_ENABLED(CONFIG_MACH_MT6885)
 #include <sspm_ipi_id.h>
-static bool smi_sspm_ipi_register;
 #else
 #include <sspm_ipi.h>
+#include <sspm_define.h>
 //#include <sspm_reservedmem_define.h>
 #if IS_ENABLED(CONFIG_MACH_MT6761)
 #include <clk-mt6761-pg.h>
@@ -650,7 +648,7 @@ s32 smi_debug_bus_hang_detect(const bool gce, const char *user)
 #endif
 
 	if (!smi_dev[0]) {
-		SMIERR("SMI %s is not ready.\n", __func__);
+		SMIERR("SMI %s: %d is not ready.\n", __func__);
 		return 0;
 	}
 
@@ -1125,9 +1123,11 @@ static const struct file_operations smi_file_opers = {
 
 static inline void smi_subsys_sspm_ipi(const bool ena, const u32 subsys)
 {
+/*
+TODO-419
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && IS_ENABLED(SMI_SSPM)
 	struct smi_ipi_data_s ipi_data;
-	s32 ret;
+	s32 ackdata;
 
 	spin_lock(&(smi_drv.lock));
 	smi_subsys_on = ena ?
@@ -1136,26 +1136,19 @@ static inline void smi_subsys_sspm_ipi(const bool ena, const u32 subsys)
 
 	ipi_data.cmd = SMI_IPI_ENABLE;
 	ipi_data.u.logger.enable = smi_subsys_on;
-#if IS_ENABLED(SMI_SSPM)
-	if (!smi_sspm_ipi_register)
-		return;
-
+#if IS_ENABLED(CONFIG_MACH_MT6885)
 	do {
-		ret = mtk_ipi_send_compl(&sspm_ipidev, IPIS_C_SMI,
-			IPI_SEND_POLLING, &ipi_data,
-			sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 2000);
+		mtk_ipi_send_compl(&sspm_ipidev, IPIS_C_SMI, IPI_SEND_POLLING,
+			&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 10);
 	} while (smi_dram.ackdata);
-/*
- *	SMIDBG("ena:%d subsys:%#x smi_subsys_on:%#x ackdata:%d\n",
- *		ena, subsys, smi_subsys_on, smi_dram.ackdata);
- */
 #else
 	do {
-		ret = sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING, &ipi_data,
-		sizeof(ipi_data) / MBOX_SLOT_SIZE, &smi_dram.ackdata, 1);
-	} while (smi_dram.ackdata);
+		sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING, &ipi_data,
+			sizeof(ipi_data) / MBOX_SLOT_SIZE, &ackdata, 1);
+	} while (ackdata);
 #endif
 #endif
+*/
 }
 
 static void smi_subsys_after_on(enum subsys_id sys)
@@ -1361,19 +1354,20 @@ static inline void smi_mmp_init(void)
 
 static inline void smi_dram_init(void)
 {
+/*
+TODO-419
 #if IS_ENABLED(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && IS_ENABLED(SMI_SSPM)
 	phys_addr_t phys = sspm_reserve_mem_get_phys(SMI_MEM_ID);
 	struct smi_ipi_data_s ipi_data;
-	s32 ret;
+	s32 ackdata, ret;
 
-#if IS_ENABLED(SMI_SSPM)
-	ret = mtk_ipi_register(&sspm_ipidev, IPIS_C_SMI, NULL, NULL,
-		(void *)&smi_dram.ackdata);
+#if IS_ENABLED(CONFIG_MACH_MT6885)
+	ret = mtk_ipi_register(
+		&sspm_ipidev, IPIS_C_SMI, NULL, NULL, (void *)smi_dram.ackdata);
 	if (ret) {
 		SMIERR("mtk_ipi_register:%d failed:%d\n", IPIS_C_SMI, ret);
-		return;
+		return ret;
 	}
-	smi_sspm_ipi_register = true;
 #endif
 	smi_dram.size = sspm_reserve_mem_get_size(SMI_MEM_ID);
 	smi_dram.virt = ioremap_wc(phys, smi_dram.size);
@@ -1384,12 +1378,12 @@ static inline void smi_dram_init(void)
 	ipi_data.cmd = SMI_IPI_INIT;
 	ipi_data.u.ctrl.phys = phys;
 	ipi_data.u.ctrl.size = smi_dram.size;
-#if IS_ENABLED(SMI_SSPM)
+#if IS_ENABLED(CONFIG_MACH_MT6885)
 	ret = mtk_ipi_send_compl(&sspm_ipidev, IPIS_C_SMI, IPI_SEND_POLLING,
-		&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 2000);
+		&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 10);
 #else
-	ret = sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING, &ipi_data,
-		sizeof(ipi_data) / MBOX_SLOT_SIZE, &smi_dram.ackdata, 1);
+	ret = sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING,
+		&ipi_data, sizeof(ipi_data) / MBOX_SLOT_SIZE, &ackdata, 1);
 #endif
 
 #if IS_ENABLED(CONFIG_MTK_ENG_BUILD)
@@ -1397,14 +1391,15 @@ static inline void smi_dram_init(void)
 #endif
 	ipi_data.cmd = SMI_IPI_ENABLE;
 	ipi_data.u.logger.enable = (smi_dram.dump << 31) | smi_subsys_on;
-#if IS_ENABLED(SMI_SSPM)
+#if IS_ENABLED(CONFIG_MACH_MT6885)
 	ret = mtk_ipi_send_compl(&sspm_ipidev, IPIS_C_SMI, IPI_SEND_POLLING,
-		&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 2000);
+		&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 10);
 #else
-	ret = sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING, &ipi_data,
-		sizeof(ipi_data) / MBOX_SLOT_SIZE, &smi_dram.ackdata, 1);
+	ret = sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_POLLING,
+		&ipi_data, sizeof(ipi_data) / MBOX_SLOT_SIZE, &ackdata, 1);
 #endif
 #endif
+*/
 	smi_dram.node = debugfs_create_file(
 		"smi_mon", 0444, NULL, (void *)0, &smi_dram_file_opers);
 	if (IS_ERR(smi_dram.node))
@@ -1437,6 +1432,8 @@ int smi_dram_dump_get(char *buf, const struct kernel_param *kp)
 
 int smi_dram_dump_set(const char *val, const struct kernel_param *kp)
 {
+/*
+TODO-419
 	s32 arg = 0, ret;
 
 	ret = kstrtoint(val, 0, &arg);
@@ -1450,9 +1447,9 @@ int smi_dram_dump_set(const char *val, const struct kernel_param *kp)
 		ipi_data.cmd = SMI_IPI_ENABLE;
 		ipi_data.u.logger.enable =
 			(smi_dram.dump << 31) | smi_subsys_on;
-#if IS_ENABLED(SMI_SSPM)
+#if IS_ENABLED(CONFIG_MACH_MT6885)
 		mtk_ipi_send_compl(&sspm_ipidev, IPIS_C_SMI, IPI_SEND_WAIT,
-		&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 2000);
+			&ipi_data, sizeof(ipi_data) / SSPM_MBOX_SLOT_SIZE, 10);
 #else
 		sspm_ipi_send_sync(IPI_ID_SMI, IPI_OPT_WAIT,
 			&ipi_data, sizeof(ipi_data) / MBOX_SLOT_SIZE, &ret, 1);
@@ -1461,6 +1458,8 @@ int smi_dram_dump_set(const char *val, const struct kernel_param *kp)
 #endif
 	SMIDBG("arg=%d, dump=%u\n", arg, smi_dram.dump);
 	return ret;
+*/
+return 0;
 }
 
 static struct kernel_param_ops smi_dram_dump_ops = {

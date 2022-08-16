@@ -20,11 +20,6 @@
 #define INV_OFS			-1
 #define INV_BIT			-1
 
-/* get spm power status struct to register inside clk_data */
-static struct pwr_status vdec_pwr_stat = GATE_PWR_STAT(0x16C,
-		0x170, INV_OFS, BIT(16), BIT(16));
-
-
 static const struct mtk_gate_regs vde20_cg_regs = {
 	.set_ofs = 0x0,
 	.clr_ofs = 0x4,
@@ -50,7 +45,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde20_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 #define GATE_VDE21(_id, _name, _parent, _shift) {	\
@@ -60,7 +54,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde21_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 #define GATE_VDE22(_id, _name, _parent, _shift) {	\
@@ -70,7 +63,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde22_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY20(_id, _name, _parent, _shift) {\
@@ -80,7 +72,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde20_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY21(_id, _name, _parent, _shift) {\
@@ -90,7 +81,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde21_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY22(_id, _name, _parent, _shift) {\
@@ -100,7 +90,6 @@ static const struct mtk_gate_regs vde22_cg_regs = {
 		.regs = &vde22_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_pwr_stat,			\
 	}
 
 static const struct mtk_gate vde2_clks[] = {
@@ -128,11 +117,6 @@ static const struct mtk_clk_desc vde2_mcd = {
 	.num_clks = CLK_VDE2_NR_CLK,
 };
 
-/* get spm power status struct to register inside clk_data */
-static struct pwr_status vdec_s_pwr_stat = GATE_PWR_STAT(0x16C,
-		0x170, INV_OFS, BIT(15), BIT(15));
-
-
 static const struct mtk_gate_regs vde10_cg_regs = {
 	.set_ofs = 0x0,
 	.clr_ofs = 0x4,
@@ -158,7 +142,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde10_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 #define GATE_VDE11(_id, _name, _parent, _shift) {	\
@@ -168,7 +151,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde11_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 #define GATE_VDE12(_id, _name, _parent, _shift) {	\
@@ -178,7 +160,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde12_cg_regs,			\
 		.shift = _shift,			\
 		.ops = &mtk_clk_gate_ops_setclr_inv,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY10(_id, _name, _parent, _shift) {\
@@ -188,7 +169,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde10_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY11(_id, _name, _parent, _shift) {\
@@ -198,7 +178,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde11_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 #define GATE_INV_DUMMY12(_id, _name, _parent, _shift) {\
@@ -208,7 +187,6 @@ static const struct mtk_gate_regs vde12_cg_regs = {
 		.regs = &vde12_cg_regs,					\
 		.shift = _shift,				\
 		.ops = &mtk_clk_gate_ops_setclr_inv_dummy,	\
-		.pwr_stat = &vdec_s_pwr_stat,			\
 	}
 
 static const struct mtk_gate vde1_clks[] = {

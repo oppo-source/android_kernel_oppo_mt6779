@@ -35,6 +35,8 @@ static struct mddp_md_cfg_t mddpw_md_cfg_s = {
 	MDFPM_USER_ID_WFPM,
 };
 
+static uint8_t mddpw_reset_ongoing;
+
 //------------------------------------------------------------------------------
 // Private helper macro.
 //------------------------------------------------------------------------------
@@ -420,6 +422,8 @@ static void mddpw_wfpm_send_smem_layout(void)
 			wifi_handle->notify_md_info(&md_info);
 		}
 	}
+
+	mddpw_reset_ongoing = 0;
 }
 
 static int32_t mddpw_wfpm_msg_hdlr(uint32_t msg_id, void *buf, uint32_t buf_len)
@@ -526,8 +530,13 @@ static int32_t mddpw_wfpm_msg_hdlr(uint32_t msg_id, void *buf, uint32_t buf_len)
 	case IPC_MSG_ID_WFPM_RESET_IND:
 		MDDP_S_LOG(MDDP_LL_WARN,
 				"%s: Received WFPM RESET IND\n", __func__);
-		msleep(MDDP_RESET_READY_TIME_MS);
-		mddp_sm_on_event(app, MDDP_EVT_MD_RESET);
+		if (mddpw_reset_ongoing == 0) {
+			mddpw_reset_ongoing = 1;
+			msleep(MDDP_RESET_READY_TIME_MS);
+			mddp_sm_on_event(app, MDDP_EVT_MD_RESET);
+		} else
+			MDDP_S_LOG(MDDP_LL_NOTICE,
+					"%s: WFPM RESET ongoing", __func__);
 		break;
 	case IPC_MSG_ID_WFPM_MD_NOTIFY:
 		MDDP_S_LOG(MDDP_LL_DEBUG,
